@@ -1,12 +1,12 @@
-import { Prompt } from '@/types/prompt';
-import { FC, MutableRefObject } from 'react';
+import { Prompt } from '@/types/prompt'
+import { FC, MutableRefObject } from 'react'
 
 interface Props {
-  prompts: Prompt[];
-  activePromptIndex: number;
-  onSelect: () => void;
-  onMouseOver: (index: number) => void;
-  promptListRef: MutableRefObject<HTMLUListElement | null>;
+  prompts: Prompt[]
+  activePromptIndex: number
+  onSelect: () => void
+  onMouseOver: (index: number) => void
+  promptListRef: MutableRefObject<HTMLUListElement | null>
 }
 
 export const PromptList: FC<Props> = ({
@@ -25,14 +25,12 @@ export const PromptList: FC<Props> = ({
         <li
           key={prompt.id}
           className={`${
-            index === activePromptIndex
-              ? 'bg-gray-200 dark:bg-[#202123] dark:text-black'
-              : ''
+            index === activePromptIndex ? 'bg-gray-200 dark:bg-[#202123] dark:text-black' : ''
           } cursor-pointer px-3 py-2 text-sm text-black dark:text-white`}
           onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            onSelect();
+            e.preventDefault()
+            e.stopPropagation()
+            onSelect()
           }}
           onMouseEnter={() => onMouseOver(index)}
         >
@@ -40,5 +38,5 @@ export const PromptList: FC<Props> = ({
         </li>
       ))}
     </ul>
-  );
-};
+  )
+}

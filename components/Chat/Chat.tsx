@@ -1,50 +1,35 @@
-import { Conversation, Message } from '@/types/chat';
-import { KeyValuePair } from '@/types/data';
-import { ErrorMessage } from '@/types/error';
-import { OpenAIModel, OpenAIModelID } from '@/types/openai';
-import { Plugin } from '@/types/plugin';
-import { Prompt } from '@/types/prompt';
-import { throttle } from '@/utils';
-import { IconArrowDown, IconClearAll, IconSettings } from '@tabler/icons-react';
-import { useTranslation } from 'next-i18next';
-import {
-  FC,
-  MutableRefObject,
-  memo,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
-import { Spinner } from '../Global/Spinner';
-import { ChatInput } from './ChatInput';
-import { ChatLoader } from './ChatLoader';
-import { ChatMessage } from './ChatMessage';
-import { ErrorMessageDiv } from './ErrorMessageDiv';
-import { ModelSelect } from './ModelSelect';
-import { SystemPrompt } from './SystemPrompt';
+import { Conversation, Message } from '@/types/chat'
+import { KeyValuePair } from '@/types/data'
+import { ErrorMessage } from '@/types/error'
+import { OpenAIModel, OpenAIModelID } from '@/types/openai'
+import { Plugin } from '@/types/plugin'
+import { Prompt } from '@/types/prompt'
+import { throttle } from '@/utils'
+import { IconArrowDown, IconClearAll, IconSettings } from '@tabler/icons-react'
+import { useTranslation } from 'next-i18next'
+import { FC, MutableRefObject, memo, useCallback, useEffect, useRef, useState } from 'react'
+import { Spinner } from '../Global/Spinner'
+import { ChatInput } from './ChatInput'
+import { ChatLoader } from './ChatLoader'
+import { ChatMessage } from './ChatMessage'
+import { ErrorMessageDiv } from './ErrorMessageDiv'
+import { ModelSelect } from './ModelSelect'
+import { SystemPrompt } from './SystemPrompt'
 
 interface Props {
-  conversation: Conversation;
-  models: OpenAIModel[];
-  apiKey: string;
-  serverSideApiKeyIsSet: boolean;
-  defaultModelId: OpenAIModelID;
-  messageIsStreaming: boolean;
-  modelError: ErrorMessage | null;
-  loading: boolean;
-  prompts: Prompt[];
-  onSend: (
-    message: Message,
-    deleteCount: number,
-    plugin: Plugin | null,
-  ) => void;
-  onUpdateConversation: (
-    conversation: Conversation,
-    data: KeyValuePair,
-  ) => void;
-  onEditMessage: (message: Message, messageIndex: number) => void;
-  stopConversationRef: MutableRefObject<boolean>;
+  conversation: Conversation
+  models: OpenAIModel[]
+  apiKey: string
+  serverSideApiKeyIsSet: boolean
+  defaultModelId: OpenAIModelID
+  messageIsStreaming: boolean
+  modelError: ErrorMessage | null
+  loading: boolean
+  prompts: Prompt[]
+  onSend: (message: Message, deleteCount: number, plugin: Plugin | null) => void
+  onUpdateConversation: (conversation: Conversation, data: KeyValuePair) => void
+  onEditMessage: (message: Message, messageIndex: number) => void
+  stopConversationRef: MutableRefObject<boolean>
 }
 
 export const Chat: FC<Props> = memo(
@@ -63,94 +48,90 @@ export const Chat: FC<Props> = memo(
     onEditMessage,
     stopConversationRef,
   }) => {
-    const { t } = useTranslation('chat');
-    const [currentMessage, setCurrentMessage] = useState<Message>();
-    const [autoScrollEnabled, setAutoScrollEnabled] = useState<boolean>(true);
-    const [showSettings, setShowSettings] = useState<boolean>(false);
-    const [showScrollDownButton, setShowScrollDownButton] =
-      useState<boolean>(false);
+    const { t } = useTranslation('chat')
+    const [currentMessage, setCurrentMessage] = useState<Message>()
+    const [autoScrollEnabled, setAutoScrollEnabled] = useState<boolean>(true)
+    const [showSettings, setShowSettings] = useState<boolean>(false)
+    const [showScrollDownButton, setShowScrollDownButton] = useState<boolean>(false)
 
-    const messagesEndRef = useRef<HTMLDivElement>(null);
-    const chatContainerRef = useRef<HTMLDivElement>(null);
-    const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const messagesEndRef = useRef<HTMLDivElement>(null)
+    const chatContainerRef = useRef<HTMLDivElement>(null)
+    const textareaRef = useRef<HTMLTextAreaElement>(null)
 
     const scrollToBottom = useCallback(() => {
       if (autoScrollEnabled) {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-        textareaRef.current?.focus();
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+        textareaRef.current?.focus()
       }
-    }, [autoScrollEnabled]);
+    }, [autoScrollEnabled])
 
     const handleScroll = () => {
       if (chatContainerRef.current) {
-        const { scrollTop, scrollHeight, clientHeight } =
-          chatContainerRef.current;
-        const bottomTolerance = 30;
+        const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current
+        const bottomTolerance = 30
 
         if (scrollTop + clientHeight < scrollHeight - bottomTolerance) {
-          setAutoScrollEnabled(false);
-          setShowScrollDownButton(true);
+          setAutoScrollEnabled(false)
+          setShowScrollDownButton(true)
         } else {
-          setAutoScrollEnabled(true);
-          setShowScrollDownButton(false);
+          setAutoScrollEnabled(true)
+          setShowScrollDownButton(false)
         }
       }
-    };
+    }
 
     const handleScrollDown = () => {
       chatContainerRef.current?.scrollTo({
         top: chatContainerRef.current.scrollHeight,
         behavior: 'smooth',
-      });
-    };
+      })
+    }
 
     const handleSettings = () => {
-      setShowSettings(!showSettings);
-    };
+      setShowSettings(!showSettings)
+    }
 
     const onClearAll = () => {
       if (confirm(t<string>('Are you sure you want to clear all messages?'))) {
-        onUpdateConversation(conversation, { key: 'messages', value: [] });
+        onUpdateConversation(conversation, { key: 'messages', value: [] })
       }
-    };
+    }
 
     const scrollDown = () => {
       if (autoScrollEnabled) {
-        messagesEndRef.current?.scrollIntoView(true);
+        messagesEndRef.current?.scrollIntoView(true)
       }
-    };
-    const throttledScrollDown = throttle(scrollDown, 250);
+    }
+    const throttledScrollDown = throttle(scrollDown, 250)
 
     useEffect(() => {
-      throttledScrollDown();
-      setCurrentMessage(
-        conversation.messages[conversation.messages.length - 2],
-      );
-    }, [conversation.messages, throttledScrollDown]);
+      throttledScrollDown()
+      setCurrentMessage(conversation.messages[conversation.messages.length - 2])
+    }, [conversation.messages, throttledScrollDown])
 
     useEffect(() => {
       const observer = new IntersectionObserver(
         ([entry]) => {
-          setAutoScrollEnabled(entry.isIntersecting);
+          setAutoScrollEnabled(entry.isIntersecting)
           if (entry.isIntersecting) {
-            textareaRef.current?.focus();
+            textareaRef.current?.focus()
           }
         },
         {
           root: null,
           threshold: 0.5,
-        },
-      );
-      const messagesEndElement = messagesEndRef.current;
+        }
+      )
+      const messagesEndElement = messagesEndRef.current
       if (messagesEndElement) {
-        observer.observe(messagesEndElement);
+        observer.observe(messagesEndElement)
       }
       return () => {
         if (messagesEndElement) {
-          observer.unobserve(messagesEndElement);
+          observer.unobserve(messagesEndElement)
         }
-      };
-    }, [messagesEndRef]);
+      }
+    }, [messagesEndRef])
 
     return (
       <div className="relative flex-1 overflow-hidden bg-white dark:bg-[#343541]">
@@ -167,22 +148,16 @@ export const Chat: FC<Props> = memo(
             </div>
             <div className="text-center text-gray-500 dark:text-gray-400">
               <div className="mb-2">
-                Chatbot UI allows you to plug in your API key to use this UI
-                with their API.
+                Chatbot UI allows you to plug in your API key to use this UI with their API.
               </div>
               <div className="mb-2">
-                It is <span className="italic">only</span> used to communicate
-                with their API.
+                It is <span className="italic">only</span> used to communicate with their API.
               </div>
               <div className="mb-2">
-                {t(
-                  'Please set your OpenAI API key in the bottom left of the sidebar.',
-                )}
+                {t('Please set your OpenAI API key in the bottom left of the sidebar.')}
               </div>
               <div>
-                {t(
-                  "If you don't have an OpenAI API key, you can get one here: ",
-                )}
+                {t("If you don't have an OpenAI API key, you can get one here: ")}
                 <a
                   href="https://platform.openai.com/account/api-keys"
                   target="_blank"
@@ -254,10 +229,7 @@ export const Chat: FC<Props> = memo(
                     >
                       <IconSettings size={18} />
                     </button>
-                    <button
-                      className="ml-2 cursor-pointer hover:opacity-50"
-                      onClick={onClearAll}
-                    >
+                    <button className="ml-2 cursor-pointer hover:opacity-50" onClick={onClearAll}>
                       <IconClearAll size={18} />
                     </button>
                   </div>
@@ -290,10 +262,7 @@ export const Chat: FC<Props> = memo(
 
                   {loading && <ChatLoader />}
 
-                  <div
-                    className="h-[162px] bg-white dark:bg-[#343541]"
-                    ref={messagesEndRef}
-                  />
+                  <div className="h-[162px] bg-white dark:bg-[#343541]" ref={messagesEndRef} />
                 </>
               )}
             </div>
@@ -306,12 +275,12 @@ export const Chat: FC<Props> = memo(
               model={conversation.model}
               prompts={prompts}
               onSend={(message, plugin) => {
-                setCurrentMessage(message);
-                onSend(message, 0, plugin);
+                setCurrentMessage(message)
+                onSend(message, 0, plugin)
               }}
               onRegenerate={() => {
                 if (currentMessage) {
-                  onSend(currentMessage, 2, null);
+                  onSend(currentMessage, 2, null)
                 }
               }}
             />
@@ -328,7 +297,7 @@ export const Chat: FC<Props> = memo(
           </div>
         )}
       </div>
-    );
-  },
-);
-Chat.displayName = 'Chat';
+    )
+  }
+)
+Chat.displayName = 'Chat'

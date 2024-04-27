@@ -1,24 +1,15 @@
-import { Conversation } from '@/types/chat';
-import { KeyValuePair } from '@/types/data';
-import {
-  IconCheck,
-  IconMessage,
-  IconPencil,
-  IconTrash,
-  IconX,
-} from '@tabler/icons-react';
-import { DragEvent, FC, KeyboardEvent, useEffect, useState } from 'react';
+import { Conversation } from '@/types/chat'
+import { KeyValuePair } from '@/types/data'
+import { IconCheck, IconMessage, IconPencil, IconTrash, IconX } from '@tabler/icons-react'
+import { DragEvent, FC, KeyboardEvent, useEffect, useState } from 'react'
 
 interface Props {
-  selectedConversation: Conversation;
-  conversation: Conversation;
-  loading: boolean;
-  onSelectConversation: (conversation: Conversation) => void;
-  onDeleteConversation: (conversation: Conversation) => void;
-  onUpdateConversation: (
-    conversation: Conversation,
-    data: KeyValuePair,
-  ) => void;
+  selectedConversation: Conversation
+  conversation: Conversation
+  loading: boolean
+  onSelectConversation: (conversation: Conversation) => void
+  onDeleteConversation: (conversation: Conversation) => void
+  onUpdateConversation: (conversation: Conversation, data: KeyValuePair) => void
 }
 
 export const ConversationComponent: FC<Props> = ({
@@ -29,41 +20,38 @@ export const ConversationComponent: FC<Props> = ({
   onDeleteConversation,
   onUpdateConversation,
 }) => {
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [isRenaming, setIsRenaming] = useState(false);
-  const [renameValue, setRenameValue] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [isRenaming, setIsRenaming] = useState(false)
+  const [renameValue, setRenameValue] = useState('')
 
   const handleEnterDown = (e: KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Enter') {
-      e.preventDefault();
-      handleRename(selectedConversation);
+      e.preventDefault()
+      handleRename(selectedConversation)
     }
-  };
+  }
 
-  const handleDragStart = (
-    e: DragEvent<HTMLButtonElement>,
-    conversation: Conversation,
-  ) => {
+  const handleDragStart = (e: DragEvent<HTMLButtonElement>, conversation: Conversation) => {
     if (e.dataTransfer) {
-      e.dataTransfer.setData('conversation', JSON.stringify(conversation));
+      e.dataTransfer.setData('conversation', JSON.stringify(conversation))
     }
-  };
+  }
 
   const handleRename = (conversation: Conversation) => {
     if (renameValue.trim().length > 0) {
-      onUpdateConversation(conversation, { key: 'name', value: renameValue });
-      setRenameValue('');
-      setIsRenaming(false);
+      onUpdateConversation(conversation, { key: 'name', value: renameValue })
+      setRenameValue('')
+      setIsRenaming(false)
     }
-  };
+  }
 
   useEffect(() => {
     if (isRenaming) {
-      setIsDeleting(false);
+      setIsDeleting(false)
     } else if (isDeleting) {
-      setIsRenaming(false);
+      setIsRenaming(false)
     }
-  }, [isRenaming, isDeleting]);
+  }, [isRenaming, isDeleting])
 
   return (
     <div className="relative flex items-center">
@@ -83,9 +71,7 @@ export const ConversationComponent: FC<Props> = ({
         <button
           className={`flex w-full cursor-pointer items-center gap-3 rounded-lg p-3 text-sm transition-colors duration-200 hover:bg-[#343541]/90 ${
             loading ? 'disabled:cursor-not-allowed' : ''
-          } ${
-            selectedConversation.id === conversation.id ? 'bg-[#343541]/90' : ''
-          }`}
+          } ${selectedConversation.id === conversation.id ? 'bg-[#343541]/90' : ''}`}
           onClick={() => onSelectConversation(conversation)}
           disabled={loading}
           draggable="true"
@@ -102,62 +88,59 @@ export const ConversationComponent: FC<Props> = ({
         </button>
       )}
 
-      {(isDeleting || isRenaming) &&
-        selectedConversation.id === conversation.id && (
-          <div className="absolute right-1 z-10 flex text-gray-300">
-            <button
-              className="min-w-[20px] p-1 text-neutral-400 hover:text-neutral-100"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (isDeleting) {
-                  onDeleteConversation(conversation);
-                } else if (isRenaming) {
-                  handleRename(conversation);
-                }
-                setIsDeleting(false);
-                setIsRenaming(false);
-              }}
-            >
-              <IconCheck size={18} />
-            </button>
-            <button
-              className="min-w-[20px] p-1 text-neutral-400 hover:text-neutral-100"
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsDeleting(false);
-                setIsRenaming(false);
-              }}
-            >
-              <IconX size={18} />
-            </button>
-          </div>
-        )}
+      {(isDeleting || isRenaming) && selectedConversation.id === conversation.id && (
+        <div className="absolute right-1 z-10 flex text-gray-300">
+          <button
+            className="min-w-[20px] p-1 text-neutral-400 hover:text-neutral-100"
+            onClick={(e) => {
+              e.stopPropagation()
+              if (isDeleting) {
+                onDeleteConversation(conversation)
+              } else if (isRenaming) {
+                handleRename(conversation)
+              }
+              setIsDeleting(false)
+              setIsRenaming(false)
+            }}
+          >
+            <IconCheck size={18} />
+          </button>
+          <button
+            className="min-w-[20px] p-1 text-neutral-400 hover:text-neutral-100"
+            onClick={(e) => {
+              e.stopPropagation()
+              setIsDeleting(false)
+              setIsRenaming(false)
+            }}
+          >
+            <IconX size={18} />
+          </button>
+        </div>
+      )}
 
-      {selectedConversation.id === conversation.id &&
-        !isDeleting &&
-        !isRenaming && (
-          <div className="absolute right-1 z-10 flex text-gray-300">
-            <button
-              className="min-w-[20px] p-1 text-neutral-400 hover:text-neutral-100"
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsRenaming(true);
-                setRenameValue(selectedConversation.name);
-              }}
-            >
-              <IconPencil size={18} />
-            </button>
-            <button
-              className="min-w-[20px] p-1 text-neutral-400 hover:text-neutral-100"
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsDeleting(true);
-              }}
-            >
-              <IconTrash size={18} />
-            </button>
-          </div>
-        )}
+      {selectedConversation.id === conversation.id && !isDeleting && !isRenaming && (
+        <div className="absolute right-1 z-10 flex text-gray-300">
+          <button
+            className="min-w-[20px] p-1 text-neutral-400 hover:text-neutral-100"
+            onClick={(e) => {
+              e.stopPropagation()
+              setIsRenaming(true)
+              setRenameValue(selectedConversation.name)
+            }}
+          >
+            <IconPencil size={18} />
+          </button>
+          <button
+            className="min-w-[20px] p-1 text-neutral-400 hover:text-neutral-100"
+            onClick={(e) => {
+              e.stopPropagation()
+              setIsDeleting(true)
+            }}
+          >
+            <IconTrash size={18} />
+          </button>
+        </div>
+      )}
     </div>
-  );
-};
+  )
+}

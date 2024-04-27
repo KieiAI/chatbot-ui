@@ -1,41 +1,38 @@
-import { Conversation } from '@/types/chat';
-import { KeyValuePair } from '@/types/data';
-import { SupportedExportFormats } from '@/types/export';
-import { Folder } from '@/types/folder';
-import { PluginKey } from '@/types/plugin';
-import { IconFolderPlus, IconMessagesOff, IconPlus } from '@tabler/icons-react';
-import { useTranslation } from 'next-i18next';
-import { FC, useEffect, useState } from 'react';
-import { ChatFolders } from '../Folders/Chat/ChatFolders';
-import { Search } from '../Sidebar/Search';
-import { ChatbarSettings } from './ChatbarSettings';
-import { Conversations } from './Conversations';
+import { Conversation } from '@/types/chat'
+import { KeyValuePair } from '@/types/data'
+import { SupportedExportFormats } from '@/types/export'
+import { Folder } from '@/types/folder'
+import { PluginKey } from '@/types/plugin'
+import { IconFolderPlus, IconMessagesOff, IconPlus } from '@tabler/icons-react'
+import { useTranslation } from 'next-i18next'
+import { FC, useEffect, useState } from 'react'
+import { ChatFolders } from '../Folders/Chat/ChatFolders'
+import { Search } from '../Sidebar/Search'
+import { ChatbarSettings } from './ChatbarSettings'
+import { Conversations } from './Conversations'
 
 interface Props {
-  loading: boolean;
-  conversations: Conversation[];
-  lightMode: 'light' | 'dark';
-  selectedConversation: Conversation;
-  apiKey: string;
-  pluginKeys: PluginKey[];
-  folders: Folder[];
-  onCreateFolder: (name: string) => void;
-  onDeleteFolder: (folderId: string) => void;
-  onUpdateFolder: (folderId: string, name: string) => void;
-  onNewConversation: () => void;
-  onToggleLightMode: (mode: 'light' | 'dark') => void;
-  onSelectConversation: (conversation: Conversation) => void;
-  onDeleteConversation: (conversation: Conversation) => void;
-  onUpdateConversation: (
-    conversation: Conversation,
-    data: KeyValuePair,
-  ) => void;
-  onApiKeyChange: (apiKey: string) => void;
-  onClearConversations: () => void;
-  onExportConversations: () => void;
-  onImportConversations: (data: SupportedExportFormats) => void;
-  onPluginKeyChange: (pluginKey: PluginKey) => void;
-  onClearPluginKey: (pluginKey: PluginKey) => void;
+  loading: boolean
+  conversations: Conversation[]
+  lightMode: 'light' | 'dark'
+  selectedConversation: Conversation
+  apiKey: string
+  pluginKeys: PluginKey[]
+  folders: Folder[]
+  onCreateFolder: (name: string) => void
+  onDeleteFolder: (folderId: string) => void
+  onUpdateFolder: (folderId: string, name: string) => void
+  onNewConversation: () => void
+  onToggleLightMode: (mode: 'light' | 'dark') => void
+  onSelectConversation: (conversation: Conversation) => void
+  onDeleteConversation: (conversation: Conversation) => void
+  onUpdateConversation: (conversation: Conversation, data: KeyValuePair) => void
+  onApiKeyChange: (apiKey: string) => void
+  onClearConversations: () => void
+  onExportConversations: () => void
+  onImportConversations: (data: SupportedExportFormats) => void
+  onPluginKeyChange: (pluginKey: PluginKey) => void
+  onClearPluginKey: (pluginKey: PluginKey) => void
 }
 
 export const Chatbar: FC<Props> = ({
@@ -61,44 +58,40 @@ export const Chatbar: FC<Props> = ({
   onPluginKeyChange,
   onClearPluginKey,
 }) => {
-  const { t } = useTranslation('sidebar');
-  const [searchTerm, setSearchTerm] = useState<string>('');
-  const [filteredConversations, setFilteredConversations] =
-    useState<Conversation[]>(conversations);
+  const { t } = useTranslation('sidebar')
+  const [searchTerm, setSearchTerm] = useState<string>('')
+  const [filteredConversations, setFilteredConversations] = useState<Conversation[]>(conversations)
 
-  const handleUpdateConversation = (
-    conversation: Conversation,
-    data: KeyValuePair,
-  ) => {
-    onUpdateConversation(conversation, data);
-    setSearchTerm('');
-  };
+  const handleUpdateConversation = (conversation: Conversation, data: KeyValuePair) => {
+    onUpdateConversation(conversation, data)
+    setSearchTerm('')
+  }
 
   const handleDeleteConversation = (conversation: Conversation) => {
-    onDeleteConversation(conversation);
-    setSearchTerm('');
-  };
+    onDeleteConversation(conversation)
+    setSearchTerm('')
+  }
 
   const handleDrop = (e: any) => {
     if (e.dataTransfer) {
-      const conversation = JSON.parse(e.dataTransfer.getData('conversation'));
-      onUpdateConversation(conversation, { key: 'folderId', value: 0 });
+      const conversation = JSON.parse(e.dataTransfer.getData('conversation'))
+      onUpdateConversation(conversation, { key: 'folderId', value: 0 })
 
-      e.target.style.background = 'none';
+      e.target.style.background = 'none'
     }
-  };
+  }
 
   const allowDrop = (e: any) => {
-    e.preventDefault();
-  };
+    e.preventDefault()
+  }
 
   const highlightDrop = (e: any) => {
-    e.target.style.background = '#343541';
-  };
+    e.target.style.background = '#343541'
+  }
 
   const removeHighlight = (e: any) => {
-    e.target.style.background = 'none';
-  };
+    e.target.style.background = 'none'
+  }
 
   useEffect(() => {
     if (searchTerm) {
@@ -107,14 +100,14 @@ export const Chatbar: FC<Props> = ({
           const searchable =
             conversation.name.toLocaleLowerCase() +
             ' ' +
-            conversation.messages.map((message) => message.content).join(' ');
-          return searchable.toLowerCase().includes(searchTerm.toLowerCase());
-        }),
-      );
+            conversation.messages.map((message) => message.content).join(' ')
+          return searchable.toLowerCase().includes(searchTerm.toLowerCase())
+        })
+      )
     } else {
-      setFilteredConversations(conversations);
+      setFilteredConversations(conversations)
     }
-  }, [searchTerm, conversations]);
+  }, [searchTerm, conversations])
 
   return (
     <div
@@ -124,8 +117,8 @@ export const Chatbar: FC<Props> = ({
         <button
           className="flex w-[190px] flex-shrink-0 cursor-pointer select-none items-center gap-3 rounded-md border border-white/20 p-3 text-[14px] leading-normal text-white transition-colors duration-200 hover:bg-gray-500/10"
           onClick={() => {
-            onNewConversation();
-            setSearchTerm('');
+            onNewConversation()
+            setSearchTerm('')
           }}
         >
           <IconPlus size={18} />
@@ -153,9 +146,7 @@ export const Chatbar: FC<Props> = ({
           <div className="flex border-b border-white/20 pb-2">
             <ChatFolders
               searchTerm={searchTerm}
-              conversations={filteredConversations.filter(
-                (conversation) => conversation.folderId,
-              )}
+              conversations={filteredConversations.filter((conversation) => conversation.folderId)}
               folders={folders}
               onDeleteFolder={onDeleteFolder}
               onUpdateFolder={onUpdateFolder}
@@ -178,9 +169,7 @@ export const Chatbar: FC<Props> = ({
           >
             <Conversations
               loading={loading}
-              conversations={filteredConversations.filter(
-                (conversation) => !conversation.folderId,
-              )}
+              conversations={filteredConversations.filter((conversation) => !conversation.folderId)}
               selectedConversation={selectedConversation}
               onSelectConversation={onSelectConversation}
               onDeleteConversation={handleDeleteConversation}
@@ -209,5 +198,5 @@ export const Chatbar: FC<Props> = ({
         onClearPluginKey={onClearPluginKey}
       />
     </div>
-  );
-};
+  )
+}

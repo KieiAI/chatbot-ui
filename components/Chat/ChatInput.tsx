@@ -1,15 +1,15 @@
-import { Message } from '@/types/chat';
-import { OpenAIModel } from '@/types/openai';
-import { Plugin } from '@/types/plugin';
-import { Prompt } from '@/types/prompt';
+import { Message } from '@/types/chat'
+import { OpenAIModel } from '@/types/openai'
+import { Plugin } from '@/types/plugin'
+import { Prompt } from '@/types/prompt'
 import {
   IconBolt,
   IconBrandGoogle,
   IconPlayerStop,
   IconRepeat,
   IconSend,
-} from '@tabler/icons-react';
-import { useTranslation } from 'next-i18next';
+} from '@tabler/icons-react'
+import { useTranslation } from 'next-i18next'
 import {
   FC,
   KeyboardEvent,
@@ -18,20 +18,20 @@ import {
   useEffect,
   useRef,
   useState,
-} from 'react';
-import { PluginSelect } from './PluginSelect';
-import { PromptList } from './PromptList';
-import { VariableModal } from './VariableModal';
+} from 'react'
+import { PluginSelect } from './PluginSelect'
+import { PromptList } from './PromptList'
+import { VariableModal } from './VariableModal'
 
 interface Props {
-  messageIsStreaming: boolean;
-  model: OpenAIModel;
-  conversationIsEmpty: boolean;
-  prompts: Prompt[];
-  onSend: (message: Message, plugin: Plugin | null) => void;
-  onRegenerate: () => void;
-  stopConversationRef: MutableRefObject<boolean>;
-  textareaRef: MutableRefObject<HTMLTextAreaElement | null>;
+  messageIsStreaming: boolean
+  model: OpenAIModel
+  conversationIsEmpty: boolean
+  prompts: Prompt[]
+  onSend: (message: Message, plugin: Plugin | null) => void
+  onRegenerate: () => void
+  stopConversationRef: MutableRefObject<boolean>
+  textareaRef: MutableRefObject<HTMLTextAreaElement | null>
 }
 
 export const ChatInput: FC<Props> = ({
@@ -44,210 +44,199 @@ export const ChatInput: FC<Props> = ({
   stopConversationRef,
   textareaRef,
 }) => {
-  const { t } = useTranslation('chat');
+  const { t } = useTranslation('chat')
 
-  const [content, setContent] = useState<string>();
-  const [isTyping, setIsTyping] = useState<boolean>(false);
-  const [showPromptList, setShowPromptList] = useState(false);
-  const [activePromptIndex, setActivePromptIndex] = useState(0);
-  const [promptInputValue, setPromptInputValue] = useState('');
-  const [variables, setVariables] = useState<string[]>([]);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [showPluginSelect, setShowPluginSelect] = useState(false);
-  const [plugin, setPlugin] = useState<Plugin | null>(null);
+  const [content, setContent] = useState<string>()
+  const [isTyping, setIsTyping] = useState<boolean>(false)
+  const [showPromptList, setShowPromptList] = useState(false)
+  const [activePromptIndex, setActivePromptIndex] = useState(0)
+  const [promptInputValue, setPromptInputValue] = useState('')
+  const [variables, setVariables] = useState<string[]>([])
+  const [isModalVisible, setIsModalVisible] = useState(false)
+  const [showPluginSelect, setShowPluginSelect] = useState(false)
+  const [plugin, setPlugin] = useState<Plugin | null>(null)
 
-  const promptListRef = useRef<HTMLUListElement | null>(null);
+  const promptListRef = useRef<HTMLUListElement | null>(null)
 
   const filteredPrompts = prompts.filter((prompt) =>
-    prompt.name.toLowerCase().includes(promptInputValue.toLowerCase()),
-  );
+    prompt.name.toLowerCase().includes(promptInputValue.toLowerCase())
+  )
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const value = e.target.value;
-    const maxLength = model.maxLength;
+    const value = e.target.value
+    const maxLength = model.maxLength
 
     if (value.length > maxLength) {
       alert(
         t(
           `Message limit is {{maxLength}} characters. You have entered {{valueLength}} characters.`,
-          { maxLength, valueLength: value.length },
-        ),
-      );
-      return;
+          { maxLength, valueLength: value.length }
+        )
+      )
+      return
     }
 
-    setContent(value);
-    updatePromptListVisibility(value);
-  };
+    setContent(value)
+    updatePromptListVisibility(value)
+  }
 
   const handleSend = () => {
     if (messageIsStreaming) {
-      return;
+      return
     }
 
     if (!content) {
-      alert(t('Please enter a message'));
-      return;
+      alert(t('Please enter a message'))
+      return
     }
 
-    onSend({ role: 'user', content }, plugin);
-    setContent('');
-    setPlugin(null);
+    onSend({ role: 'user', content }, plugin)
+    setContent('')
+    setPlugin(null)
 
     if (window.innerWidth < 640 && textareaRef && textareaRef.current) {
-      textareaRef.current.blur();
+      textareaRef.current.blur()
     }
-  };
+  }
 
   const handleStopConversation = () => {
-    stopConversationRef.current = true;
+    stopConversationRef.current = true
     setTimeout(() => {
-      stopConversationRef.current = false;
-    }, 1000);
-  };
+      stopConversationRef.current = false
+    }, 1000)
+  }
 
   const isMobile = () => {
-    const userAgent =
-      typeof window.navigator === 'undefined' ? '' : navigator.userAgent;
+    const userAgent = typeof window.navigator === 'undefined' ? '' : navigator.userAgent
     const mobileRegex =
-      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile|CriOS/i;
-    return mobileRegex.test(userAgent);
-  };
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile|CriOS/i
+    return mobileRegex.test(userAgent)
+  }
 
   const handleInitModal = () => {
-    const selectedPrompt = filteredPrompts[activePromptIndex];
+    const selectedPrompt = filteredPrompts[activePromptIndex]
     if (selectedPrompt) {
       setContent((prevContent) => {
-        const newContent = prevContent?.replace(
-          /\/\w*$/,
-          selectedPrompt.content,
-        );
-        return newContent;
-      });
-      handlePromptSelect(selectedPrompt);
+        const newContent = prevContent?.replace(/\/\w*$/, selectedPrompt.content)
+        return newContent
+      })
+      handlePromptSelect(selectedPrompt)
     }
-    setShowPromptList(false);
-  };
+    setShowPromptList(false)
+  }
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (showPromptList) {
       if (e.key === 'ArrowDown') {
-        e.preventDefault();
+        e.preventDefault()
         setActivePromptIndex((prevIndex) =>
-          prevIndex < prompts.length - 1 ? prevIndex + 1 : prevIndex,
-        );
+          prevIndex < prompts.length - 1 ? prevIndex + 1 : prevIndex
+        )
       } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        setActivePromptIndex((prevIndex) =>
-          prevIndex > 0 ? prevIndex - 1 : prevIndex,
-        );
+        e.preventDefault()
+        setActivePromptIndex((prevIndex) => (prevIndex > 0 ? prevIndex - 1 : prevIndex))
       } else if (e.key === 'Tab') {
-        e.preventDefault();
-        setActivePromptIndex((prevIndex) =>
-          prevIndex < prompts.length - 1 ? prevIndex + 1 : 0,
-        );
+        e.preventDefault()
+        setActivePromptIndex((prevIndex) => (prevIndex < prompts.length - 1 ? prevIndex + 1 : 0))
       } else if (e.key === 'Enter') {
-        e.preventDefault();
-        handleInitModal();
+        e.preventDefault()
+        handleInitModal()
       } else if (e.key === 'Escape') {
-        e.preventDefault();
-        setShowPromptList(false);
+        e.preventDefault()
+        setShowPromptList(false)
       } else {
-        setActivePromptIndex(0);
+        setActivePromptIndex(0)
       }
     } else if (e.key === 'Enter' && !isTyping && !isMobile() && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
+      e.preventDefault()
+      handleSend()
     } else if (e.key === '/' && e.metaKey) {
-      e.preventDefault();
-      setShowPluginSelect(!showPluginSelect);
+      e.preventDefault()
+      setShowPluginSelect(!showPluginSelect)
     }
-  };
+  }
 
   const parseVariables = (content: string) => {
-    const regex = /{{(.*?)}}/g;
-    const foundVariables = [];
-    let match;
+    const regex = /{{(.*?)}}/g
+    const foundVariables = []
+    let match
 
     while ((match = regex.exec(content)) !== null) {
-      foundVariables.push(match[1]);
+      foundVariables.push(match[1])
     }
 
-    return foundVariables;
-  };
+    return foundVariables
+  }
 
   const updatePromptListVisibility = useCallback((text: string) => {
-    const match = text.match(/\/\w*$/);
+    const match = text.match(/\/\w*$/)
 
     if (match) {
-      setShowPromptList(true);
-      setPromptInputValue(match[0].slice(1));
+      setShowPromptList(true)
+      setPromptInputValue(match[0].slice(1))
     } else {
-      setShowPromptList(false);
-      setPromptInputValue('');
+      setShowPromptList(false)
+      setPromptInputValue('')
     }
-  }, []);
+  }, [])
 
   const handlePromptSelect = (prompt: Prompt) => {
-    const parsedVariables = parseVariables(prompt.content);
-    setVariables(parsedVariables);
+    const parsedVariables = parseVariables(prompt.content)
+    setVariables(parsedVariables)
 
     if (parsedVariables.length > 0) {
-      setIsModalVisible(true);
+      setIsModalVisible(true)
     } else {
       setContent((prevContent) => {
-        const updatedContent = prevContent?.replace(/\/\w*$/, prompt.content);
-        return updatedContent;
-      });
-      updatePromptListVisibility(prompt.content);
+        const updatedContent = prevContent?.replace(/\/\w*$/, prompt.content)
+        return updatedContent
+      })
+      updatePromptListVisibility(prompt.content)
     }
-  };
+  }
 
   const handleSubmit = (updatedVariables: string[]) => {
     const newContent = content?.replace(/{{(.*?)}}/g, (match, variable) => {
-      const index = variables.indexOf(variable);
-      return updatedVariables[index];
-    });
+      const index = variables.indexOf(variable)
+      return updatedVariables[index]
+    })
 
-    setContent(newContent);
+    setContent(newContent)
 
     if (textareaRef && textareaRef.current) {
-      textareaRef.current.focus();
+      textareaRef.current.focus()
     }
-  };
+  }
 
   useEffect(() => {
     if (promptListRef.current) {
-      promptListRef.current.scrollTop = activePromptIndex * 30;
+      promptListRef.current.scrollTop = activePromptIndex * 30
     }
-  }, [activePromptIndex]);
+  }, [activePromptIndex])
 
   useEffect(() => {
     if (textareaRef && textareaRef.current) {
-      textareaRef.current.style.height = 'inherit';
-      textareaRef.current.style.height = `${textareaRef.current?.scrollHeight}px`;
+      textareaRef.current.style.height = 'inherit'
+      textareaRef.current.style.height = `${textareaRef.current?.scrollHeight}px`
       textareaRef.current.style.overflow = `${
         textareaRef?.current?.scrollHeight > 400 ? 'auto' : 'hidden'
-      }`;
+      }`
     }
-  }, [content]);
+  }, [content])
 
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
-      if (
-        promptListRef.current &&
-        !promptListRef.current.contains(e.target as Node)
-      ) {
-        setShowPromptList(false);
+      if (promptListRef.current && !promptListRef.current.contains(e.target as Node)) {
+        setShowPromptList(false)
       }
-    };
+    }
 
-    window.addEventListener('click', handleOutsideClick);
+    window.addEventListener('click', handleOutsideClick)
 
     return () => {
-      window.removeEventListener('click', handleOutsideClick);
-    };
-  }, []);
+      window.removeEventListener('click', handleOutsideClick)
+    }
+  }, [])
 
   return (
     <div className="absolute bottom-0 left-0 w-full border-transparent bg-gradient-to-b from-transparent via-white to-white pt-6 dark:border-white/20 dark:via-[#343541] dark:to-[#343541] md:pt-2">
@@ -284,11 +273,11 @@ export const ChatInput: FC<Props> = ({
               <PluginSelect
                 plugin={plugin}
                 onPluginChange={(plugin: Plugin) => {
-                  setPlugin(plugin);
-                  setShowPluginSelect(false);
+                  setPlugin(plugin)
+                  setShowPluginSelect(false)
 
                   if (textareaRef && textareaRef.current) {
-                    textareaRef.current.focus();
+                    textareaRef.current.focus()
                   }
                 }}
               />
@@ -303,14 +292,10 @@ export const ChatInput: FC<Props> = ({
               bottom: `${textareaRef?.current?.scrollHeight}px`,
               maxHeight: '400px',
               overflow: `${
-                textareaRef.current && textareaRef.current.scrollHeight > 400
-                  ? 'auto'
-                  : 'hidden'
+                textareaRef.current && textareaRef.current.scrollHeight > 400 ? 'auto' : 'hidden'
               }`,
             }}
-            placeholder={
-              t('Type a message or type "/" to select a prompt...') || ''
-            }
+            placeholder={t('Type a message or type "/" to select a prompt...') || ''}
             value={content}
             rows={1}
             onCompositionStart={() => setIsTyping(true)}
@@ -353,5 +338,5 @@ export const ChatInput: FC<Props> = ({
         </div>
       </div>
     </div>
-  );
-};
+  )
+}

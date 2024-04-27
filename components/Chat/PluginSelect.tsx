@@ -1,22 +1,22 @@
-import { Plugin, PluginList } from '@/types/plugin';
-import { useTranslation } from 'next-i18next';
-import { FC, useEffect, useRef } from 'react';
+import { Plugin, PluginList } from '@/types/plugin'
+import { useTranslation } from 'next-i18next'
+import { FC, useEffect, useRef } from 'react'
 
 interface Props {
-  plugin: Plugin | null;
-  onPluginChange: (plugin: Plugin) => void;
+  plugin: Plugin | null
+  onPluginChange: (plugin: Plugin) => void
 }
 
 export const PluginSelect: FC<Props> = ({ plugin, onPluginChange }) => {
-  const { t } = useTranslation('chat');
+  const { t } = useTranslation('chat')
 
-  const selectRef = useRef<HTMLSelectElement>(null);
+  const selectRef = useRef<HTMLSelectElement>(null)
 
   useEffect(() => {
     if (selectRef.current) {
-      selectRef.current.focus();
+      selectRef.current.focus()
     }
-  }, []);
+  }, [])
 
   return (
     <div className="flex flex-col">
@@ -27,32 +27,20 @@ export const PluginSelect: FC<Props> = ({ plugin, onPluginChange }) => {
           placeholder={t('Select a plugin') || ''}
           value={plugin?.id || ''}
           onChange={(e) => {
-            onPluginChange(
-              PluginList.find(
-                (plugin) => plugin.id === e.target.value,
-              ) as Plugin,
-            );
+            onPluginChange(PluginList.find((plugin) => plugin.id === e.target.value) as Plugin)
           }}
         >
-          <option
-            key="none"
-            value=""
-            className="dark:bg-[#343541] dark:text-white"
-          >
+          <option key="none" value="" className="dark:bg-[#343541] dark:text-white">
             Select Plugin
           </option>
 
           {PluginList.map((plugin) => (
-            <option
-              key={plugin.id}
-              value={plugin.id}
-              className="dark:bg-[#343541] dark:text-white"
-            >
+            <option key={plugin.id} value={plugin.id} className="dark:bg-[#343541] dark:text-white">
               {plugin.name}
             </option>
           ))}
         </select>
       </div>
     </div>
-  );
-};
+  )
+}

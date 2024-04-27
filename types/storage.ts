@@ -1,21 +1,21 @@
-import { Conversation } from './chat';
-import { Folder } from './folder';
-import { PluginKey } from './plugin';
-import { Prompt } from './prompt';
+import { Conversation } from './chat'
+import { Folder } from './folder'
+import { PluginKey } from './plugin'
+import { Prompt } from './prompt'
 
 // keep track of local storage schema
 export interface LocalStorage {
-  apiKey: string;
-  conversationHistory: Conversation[];
-  selectedConversation: Conversation;
-  theme: 'light' | 'dark';
+  apiKey: string
+  conversationHistory: Conversation[]
+  selectedConversation: Conversation
+  theme: 'light' | 'dark'
   // added folders (3/23/23)
-  folders: Folder[];
+  folders: Folder[]
   // added prompts (3/26/23)
-  prompts: Prompt[];
+  prompts: Prompt[]
   // added showChatbar and showPromptbar (3/26/23)
-  showChatbar: boolean;
-  showPromptbar: boolean;
+  showChatbar: boolean
+  showPromptbar: boolean
   // added plugin keys (4/3/23)
-  pluginKeys: PluginKey[];
+  pluginKeys: PluginKey[]
 }

@@ -1,7 +1,7 @@
 export interface Folder {
-  id: string;
-  name: string;
-  type: FolderType;
+  id: string
+  name: string
+  type: FolderType
 }
 
-export type FolderType = 'chat' | 'prompt';
+export type FolderType = 'chat' | 'prompt'

@@ -1,5 +1,5 @@
-import { IconDots } from '@tabler/icons-react';
-import { FC } from 'react';
+import { IconDots } from '@tabler/icons-react'
+import { FC } from 'react'
 
 interface Props {}
 
@@ -14,5 +14,5 @@ export const ChatLoader: FC<Props> = () => {
         <IconDots className="animate-pulse" />
       </div>
     </div>
-  );
-};
+  )
+}

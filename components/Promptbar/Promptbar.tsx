@@ -1,26 +1,22 @@
-import { Folder } from '@/types/folder';
-import { Prompt } from '@/types/prompt';
-import {
-  IconFolderPlus,
-  IconMistOff,
-  IconPlus,
-} from '@tabler/icons-react';
-import { FC, useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { PromptFolders } from '../Folders/Prompt/PromptFolders';
-import { Search } from '../Sidebar/Search';
-import { PromptbarSettings } from './PromptbarSettings';
-import { Prompts } from './Prompts';
+import { Folder } from '@/types/folder'
+import { Prompt } from '@/types/prompt'
+import { IconFolderPlus, IconMistOff, IconPlus } from '@tabler/icons-react'
+import { FC, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { PromptFolders } from '../Folders/Prompt/PromptFolders'
+import { Search } from '../Sidebar/Search'
+import { PromptbarSettings } from './PromptbarSettings'
+import { Prompts } from './Prompts'
 
 interface Props {
-  prompts: Prompt[];
-  folders: Folder[];
-  onCreateFolder: (name: string) => void;
-  onDeleteFolder: (folderId: string) => void;
-  onUpdateFolder: (folderId: string, name: string) => void;
-  onCreatePrompt: () => void;
-  onUpdatePrompt: (prompt: Prompt) => void;
-  onDeletePrompt: (prompt: Prompt) => void;
+  prompts: Prompt[]
+  folders: Folder[]
+  onCreateFolder: (name: string) => void
+  onDeleteFolder: (folderId: string) => void
+  onUpdateFolder: (folderId: string, name: string) => void
+  onCreatePrompt: () => void
+  onUpdatePrompt: (prompt: Prompt) => void
+  onDeletePrompt: (prompt: Prompt) => void
 }
 
 export const Promptbar: FC<Props> = ({
@@ -33,46 +29,46 @@ export const Promptbar: FC<Props> = ({
   onUpdatePrompt,
   onDeletePrompt,
 }) => {
-  const { t } = useTranslation('promptbar');
-  const [searchTerm, setSearchTerm] = useState<string>('');
-  const [filteredPrompts, setFilteredPrompts] = useState<Prompt[]>(prompts);
+  const { t } = useTranslation('promptbar')
+  const [searchTerm, setSearchTerm] = useState<string>('')
+  const [filteredPrompts, setFilteredPrompts] = useState<Prompt[]>(prompts)
 
   const handleUpdatePrompt = (prompt: Prompt) => {
-    onUpdatePrompt(prompt);
-    setSearchTerm('');
-  };
+    onUpdatePrompt(prompt)
+    setSearchTerm('')
+  }
 
   const handleDeletePrompt = (prompt: Prompt) => {
-    onDeletePrompt(prompt);
-    setSearchTerm('');
-  };
+    onDeletePrompt(prompt)
+    setSearchTerm('')
+  }
 
   const handleDrop = (e: any) => {
     if (e.dataTransfer) {
-      const prompt = JSON.parse(e.dataTransfer.getData('prompt'));
+      const prompt = JSON.parse(e.dataTransfer.getData('prompt'))
 
       const updatedPrompt = {
         ...prompt,
         folderId: e.target.dataset.folderId,
-      };
+      }
 
-      onUpdatePrompt(updatedPrompt);
+      onUpdatePrompt(updatedPrompt)
 
-      e.target.style.background = 'none';
+      e.target.style.background = 'none'
     }
-  };
+  }
 
   const allowDrop = (e: any) => {
-    e.preventDefault();
-  };
+    e.preventDefault()
+  }
 
   const highlightDrop = (e: any) => {
-    e.target.style.background = '#343541';
-  };
+    e.target.style.background = '#343541'
+  }
 
   const removeHighlight = (e: any) => {
-    e.target.style.background = 'none';
-  };
+    e.target.style.background = 'none'
+  }
 
   useEffect(() => {
     if (searchTerm) {
@@ -83,14 +79,14 @@ export const Promptbar: FC<Props> = ({
             ' ' +
             prompt.description.toLowerCase() +
             ' ' +
-            prompt.content.toLowerCase();
-          return searchable.includes(searchTerm.toLowerCase());
-        }),
-      );
+            prompt.content.toLowerCase()
+          return searchable.includes(searchTerm.toLowerCase())
+        })
+      )
     } else {
-      setFilteredPrompts(prompts);
+      setFilteredPrompts(prompts)
     }
-  }, [searchTerm, prompts]);
+  }, [searchTerm, prompts])
 
   return (
     <div
@@ -100,8 +96,8 @@ export const Promptbar: FC<Props> = ({
         <button
           className="text-sidebar flex w-[190px] flex-shrink-0 cursor-pointer select-none items-center gap-3 rounded-md border border-white/20 p-3 text-white transition-colors duration-200 hover:bg-gray-500/10"
           onClick={() => {
-            onCreatePrompt();
-            setSearchTerm('');
+            onCreatePrompt()
+            setSearchTerm('')
           }}
         >
           <IconPlus size={16} />
@@ -109,7 +105,7 @@ export const Promptbar: FC<Props> = ({
         </button>
 
         <button
-          className="flex items-center flex-shrink-0 gap-3 p-3 ml-2 text-sm text-white transition-colors duration-200 border rounded-md cursor-pointer border-white/20 hover:bg-gray-500/10"
+          className="ml-2 flex flex-shrink-0 cursor-pointer items-center gap-3 rounded-md border border-white/20 p-3 text-sm text-white transition-colors duration-200 hover:bg-gray-500/10"
           onClick={() => onCreateFolder(t('New folder'))}
         >
           <IconFolderPlus size={16} />
@@ -126,7 +122,7 @@ export const Promptbar: FC<Props> = ({
 
       <div className="flex-grow overflow-auto">
         {folders.length > 0 && (
-          <div className="flex pb-2 border-b border-white/20">
+          <div className="flex border-b border-white/20 pb-2">
             <PromptFolders
               searchTerm={searchTerm}
               prompts={filteredPrompts}
@@ -155,16 +151,14 @@ export const Promptbar: FC<Props> = ({
             />
           </div>
         ) : (
-          <div className="mt-8 text-center text-white opacity-50 select-none">
+          <div className="mt-8 select-none text-center text-white opacity-50">
             <IconMistOff className="mx-auto mb-3" />
-            <span className="text-[14px] leading-normal">
-              {t('No prompts.')}
-            </span>
+            <span className="text-[14px] leading-normal">{t('No prompts.')}</span>
           </div>
         )}
       </div>
 
       <PromptbarSettings />
     </div>
-  );
-};
+  )
+}

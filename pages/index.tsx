@@ -1,47 +1,35 @@
-import { Chat } from '@/components/Chat/Chat';
-import { Chatbar } from '@/components/Chatbar/Chatbar';
-import { Navbar } from '@/components/Mobile/Navbar';
-import { Promptbar } from '@/components/Promptbar/Promptbar';
-import { ChatBody, Conversation, Message } from '@/types/chat';
-import { KeyValuePair } from '@/types/data';
-import { ErrorMessage } from '@/types/error';
-import { LatestExportFormat, SupportedExportFormats } from '@/types/export';
-import { Folder, FolderType } from '@/types/folder';
-import {
-  OpenAIModel,
-  OpenAIModelID,
-  OpenAIModels,
-  fallbackModelID,
-} from '@/types/openai';
-import { Plugin, PluginKey } from '@/types/plugin';
-import { Prompt } from '@/types/prompt';
-import { getEndpoint } from '@/utils/app/api';
-import {
-  cleanConversationHistory,
-  cleanSelectedConversation,
-} from '@/utils/app/clean';
-import { DEFAULT_SYSTEM_PROMPT } from '@/utils/app/const';
-import {
-  saveConversation,
-  saveConversations,
-  updateConversation,
-} from '@/utils/app/conversation';
-import { saveFolders } from '@/utils/app/folders';
-import { exportData, importData } from '@/utils/app/importExport';
-import { savePrompts } from '@/utils/app/prompts';
-import { IconArrowBarLeft, IconArrowBarRight } from '@tabler/icons-react';
-import { GetServerSideProps } from 'next';
-import { useTranslation } from 'next-i18next';
-import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import Head from 'next/head';
-import { useEffect, useRef, useState } from 'react';
-import toast from 'react-hot-toast';
-import { v4 as uuidv4 } from 'uuid';
+import { Chat } from '@/components/Chat/Chat'
+import { Chatbar } from '@/components/Chatbar/Chatbar'
+import { Navbar } from '@/components/Mobile/Navbar'
+import { Promptbar } from '@/components/Promptbar/Promptbar'
+import { ChatBody, Conversation, Message } from '@/types/chat'
+import { KeyValuePair } from '@/types/data'
+import { ErrorMessage } from '@/types/error'
+import { LatestExportFormat, SupportedExportFormats } from '@/types/export'
+import { Folder, FolderType } from '@/types/folder'
+import { OpenAIModel, OpenAIModelID, OpenAIModels, fallbackModelID } from '@/types/openai'
+import { Plugin, PluginKey } from '@/types/plugin'
+import { Prompt } from '@/types/prompt'
+import { getEndpoint } from '@/utils/app/api'
+import { cleanConversationHistory, cleanSelectedConversation } from '@/utils/app/clean'
+import { DEFAULT_SYSTEM_PROMPT } from '@/utils/app/const'
+import { saveConversation, saveConversations, updateConversation } from '@/utils/app/conversation'
+import { saveFolders } from '@/utils/app/folders'
+import { exportData, importData } from '@/utils/app/importExport'
+import { savePrompts } from '@/utils/app/prompts'
+import { IconArrowBarLeft, IconArrowBarRight } from '@tabler/icons-react'
+import { GetServerSideProps } from 'next'
+import { useTranslation } from 'next-i18next'
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
+import Head from 'next/head'
+import { useEffect, useRef, useState } from 'react'
+import toast from 'react-hot-toast'
+import { v4 as uuidv4 } from 'uuid'
 
 interface HomeProps {
-  serverSideApiKeyIsSet: boolean;
-  serverSidePluginKeysSet: boolean;
-  defaultModelId: OpenAIModelID;
+  serverSideApiKeyIsSet: boolean
+  serverSidePluginKeysSet: boolean
+  defaultModelId: OpenAIModelID
 }
 
 const Home: React.FC<HomeProps> = ({
@@ -49,79 +37,74 @@ const Home: React.FC<HomeProps> = ({
   serverSidePluginKeysSet,
   defaultModelId,
 }) => {
-  const { t } = useTranslation('chat');
+  const { t } = useTranslation('chat')
 
   // STATE ----------------------------------------------
 
-  const [apiKey, setApiKey] = useState<string>('');
-  const [pluginKeys, setPluginKeys] = useState<PluginKey[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [lightMode, setLightMode] = useState<'dark' | 'light'>('dark');
-  const [messageIsStreaming, setMessageIsStreaming] = useState<boolean>(false);
+  const [apiKey, setApiKey] = useState<string>('')
+  const [pluginKeys, setPluginKeys] = useState<PluginKey[]>([])
+  const [loading, setLoading] = useState<boolean>(false)
+  const [lightMode, setLightMode] = useState<'dark' | 'light'>('dark')
+  const [messageIsStreaming, setMessageIsStreaming] = useState<boolean>(false)
 
-  const [modelError, setModelError] = useState<ErrorMessage | null>(null);
+  const [modelError, setModelError] = useState<ErrorMessage | null>(null)
 
-  const [models, setModels] = useState<OpenAIModel[]>([]);
+  const [models, setModels] = useState<OpenAIModel[]>([])
 
-  const [folders, setFolders] = useState<Folder[]>([]);
+  const [folders, setFolders] = useState<Folder[]>([])
 
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [selectedConversation, setSelectedConversation] =
-    useState<Conversation>();
-  const [currentMessage, setCurrentMessage] = useState<Message>();
+  const [conversations, setConversations] = useState<Conversation[]>([])
+  const [selectedConversation, setSelectedConversation] = useState<Conversation>()
+  const [currentMessage, setCurrentMessage] = useState<Message>()
 
-  const [showSidebar, setShowSidebar] = useState<boolean>(true);
+  const [showSidebar, setShowSidebar] = useState<boolean>(true)
 
-  const [prompts, setPrompts] = useState<Prompt[]>([]);
-  const [showPromptbar, setShowPromptbar] = useState<boolean>(true);
+  const [prompts, setPrompts] = useState<Prompt[]>([])
+  const [showPromptbar, setShowPromptbar] = useState<boolean>(true)
 
   // REFS ----------------------------------------------
 
-  const stopConversationRef = useRef<boolean>(false);
+  const stopConversationRef = useRef<boolean>(false)
 
   // FETCH RESPONSE ----------------------------------------------
 
-  const handleSend = async (
-    message: Message,
-    deleteCount = 0,
-    plugin: Plugin | null = null,
-  ) => {
+  const handleSend = async (message: Message, deleteCount = 0, plugin: Plugin | null = null) => {
     if (selectedConversation) {
-      let updatedConversation: Conversation;
+      let updatedConversation: Conversation
 
       if (deleteCount) {
-        const updatedMessages = [...selectedConversation.messages];
+        const updatedMessages = [...selectedConversation.messages]
         for (let i = 0; i < deleteCount; i++) {
-          updatedMessages.pop();
+          updatedMessages.pop()
         }
 
         updatedConversation = {
           ...selectedConversation,
           messages: [...updatedMessages, message],
-        };
+        }
       } else {
         updatedConversation = {
           ...selectedConversation,
           messages: [...selectedConversation.messages, message],
-        };
+        }
       }
 
-      setSelectedConversation(updatedConversation);
-      setLoading(true);
-      setMessageIsStreaming(true);
+      setSelectedConversation(updatedConversation)
+      setLoading(true)
+      setMessageIsStreaming(true)
 
       const chatBody: ChatBody = {
         model: updatedConversation.model,
         messages: updatedConversation.messages,
         key: apiKey,
         prompt: updatedConversation.prompt,
-      };
+      }
 
-      const endpoint = getEndpoint(plugin);
-      let body;
+      const endpoint = getEndpoint(plugin)
+      let body
 
       if (!plugin) {
-        body = JSON.stringify(chatBody);
+        body = JSON.stringify(chatBody)
       } else {
         body = JSON.stringify({
           ...chatBody,
@@ -131,10 +114,10 @@ const Home: React.FC<HomeProps> = ({
           googleCSEId: pluginKeys
             .find((key) => key.pluginId === 'google-search')
             ?.requiredKeys.find((key) => key.key === 'GOOGLE_CSE_ID')?.value,
-        });
+        })
       }
 
-      const controller = new AbortController();
+      const controller = new AbortController()
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
@@ -142,68 +125,67 @@ const Home: React.FC<HomeProps> = ({
         },
         signal: controller.signal,
         body,
-      });
+      })
 
       if (!response.ok) {
-        setLoading(false);
-        setMessageIsStreaming(false);
-        toast.error(response.statusText);
-        return;
+        setLoading(false)
+        setMessageIsStreaming(false)
+        toast.error(response.statusText)
+        return
       }
 
-      const data = response.body;
+      const data = response.body
 
       if (!data) {
-        setLoading(false);
-        setMessageIsStreaming(false);
-        return;
+        setLoading(false)
+        setMessageIsStreaming(false)
+        return
       }
 
       if (!plugin) {
         if (updatedConversation.messages.length === 1) {
-          const { content } = message;
-          const customName =
-            content.length > 30 ? content.substring(0, 30) + '...' : content;
+          const { content } = message
+          const customName = content.length > 30 ? content.substring(0, 30) + '...' : content
 
           updatedConversation = {
             ...updatedConversation,
             name: customName,
-          };
+          }
         }
 
-        setLoading(false);
+        setLoading(false)
 
-        const reader = data.getReader();
-        const decoder = new TextDecoder();
-        let done = false;
-        let isFirst = true;
-        let text = '';
+        const reader = data.getReader()
+        const decoder = new TextDecoder()
+        let done = false
+        let isFirst = true
+        let text = ''
 
         while (!done) {
           if (stopConversationRef.current === true) {
-            controller.abort();
-            done = true;
-            break;
+            controller.abort()
+            done = true
+            break
           }
-          const { value, done: doneReading } = await reader.read();
-          done = doneReading;
-          const chunkValue = decoder.decode(value);
+          const { value, done: doneReading } = await reader.read()
+          done = doneReading
+          const chunkValue = decoder.decode(value)
 
-          text += chunkValue;
+          text += chunkValue
 
           if (isFirst) {
-            isFirst = false;
+            isFirst = false
             const updatedMessages: Message[] = [
               ...updatedConversation.messages,
               { role: 'assistant', content: chunkValue },
-            ];
+            ]
 
             updatedConversation = {
               ...updatedConversation,
               messages: updatedMessages,
-            };
+            }
 
-            setSelectedConversation(updatedConversation);
+            setSelectedConversation(updatedConversation)
           } else {
             const updatedMessages: Message[] = updatedConversation.messages.map(
               (message, index) => {
@@ -211,80 +193,76 @@ const Home: React.FC<HomeProps> = ({
                   return {
                     ...message,
                     content: text,
-                  };
+                  }
                 }
 
-                return message;
-              },
-            );
+                return message
+              }
+            )
 
             updatedConversation = {
               ...updatedConversation,
               messages: updatedMessages,
-            };
+            }
 
-            setSelectedConversation(updatedConversation);
+            setSelectedConversation(updatedConversation)
           }
         }
 
-        saveConversation(updatedConversation);
+        saveConversation(updatedConversation)
 
-        const updatedConversations: Conversation[] = conversations.map(
-          (conversation) => {
-            if (conversation.id === selectedConversation.id) {
-              return updatedConversation;
-            }
+        const updatedConversations: Conversation[] = conversations.map((conversation) => {
+          if (conversation.id === selectedConversation.id) {
+            return updatedConversation
+          }
 
-            return conversation;
-          },
-        );
+          return conversation
+        })
 
         if (updatedConversations.length === 0) {
-          updatedConversations.push(updatedConversation);
+          updatedConversations.push(updatedConversation)
         }
 
-        setConversations(updatedConversations);
-        saveConversations(updatedConversations);
+        setConversations(updatedConversations)
+        saveConversations(updatedConversations)
 
-        setMessageIsStreaming(false);
+        setMessageIsStreaming(false)
       } else {
-        const { answer } = await response.json();
+        const { answer } = await response.json()
 
         const updatedMessages: Message[] = [
           ...updatedConversation.messages,
           { role: 'assistant', content: answer },
-        ];
+        ]
 
         updatedConversation = {
           ...updatedConversation,
           messages: updatedMessages,
-        };
-
-        setSelectedConversation(updatedConversation);
-        saveConversation(updatedConversation);
-
-        const updatedConversations: Conversation[] = conversations.map(
-          (conversation) => {
-            if (conversation.id === selectedConversation.id) {
-              return updatedConversation;
-            }
-
-            return conversation;
-          },
-        );
-
-        if (updatedConversations.length === 0) {
-          updatedConversations.push(updatedConversation);
         }
 
-        setConversations(updatedConversations);
-        saveConversations(updatedConversations);
+        setSelectedConversation(updatedConversation)
+        saveConversation(updatedConversation)
 
-        setLoading(false);
-        setMessageIsStreaming(false);
+        const updatedConversations: Conversation[] = conversations.map((conversation) => {
+          if (conversation.id === selectedConversation.id) {
+            return updatedConversation
+          }
+
+          return conversation
+        })
+
+        if (updatedConversations.length === 0) {
+          updatedConversations.push(updatedConversation)
+        }
+
+        setConversations(updatedConversations)
+        saveConversations(updatedConversations)
+
+        setLoading(false)
+        setMessageIsStreaming(false)
       }
     }
-  };
+  }
 
   // FETCH MODELS ----------------------------------------------
 
@@ -293,12 +271,10 @@ const Home: React.FC<HomeProps> = ({
       title: t('Error fetching models.'),
       code: null,
       messageLines: [
-        t(
-          'Make sure your OpenAI API key is set in the bottom left of the sidebar.',
-        ),
+        t('Make sure your OpenAI API key is set in the bottom left of the sidebar.'),
         t('If you completed this step, OpenAI may be experiencing issues.'),
       ],
-    } as ErrorMessage;
+    } as ErrorMessage
 
     const response = await fetch('/api/models', {
       method: 'POST',
@@ -308,109 +284,104 @@ const Home: React.FC<HomeProps> = ({
       body: JSON.stringify({
         key,
       }),
-    });
+    })
 
     if (!response.ok) {
       try {
-        const data = await response.json();
+        const data = await response.json()
         Object.assign(error, {
           code: data.error?.code,
           messageLines: [data.error?.message],
-        });
+        })
       } catch (e) {}
-      setModelError(error);
-      return;
+      setModelError(error)
+      return
     }
 
-    const data = await response.json();
+    const data = await response.json()
 
     if (!data) {
-      setModelError(error);
-      return;
+      setModelError(error)
+      return
     }
 
-    setModels(data);
-    setModelError(null);
-  };
+    setModels(data)
+    setModelError(null)
+  }
 
   // BASIC HANDLERS --------------------------------------------
 
   const handleLightMode = (mode: 'dark' | 'light') => {
-    setLightMode(mode);
-    localStorage.setItem('theme', mode);
-  };
+    setLightMode(mode)
+    localStorage.setItem('theme', mode)
+  }
 
   const handleApiKeyChange = (apiKey: string) => {
-    setApiKey(apiKey);
-    localStorage.setItem('apiKey', apiKey);
-  };
+    setApiKey(apiKey)
+    localStorage.setItem('apiKey', apiKey)
+  }
 
   const handlePluginKeyChange = (pluginKey: PluginKey) => {
     if (pluginKeys.some((key) => key.pluginId === pluginKey.pluginId)) {
       const updatedPluginKeys = pluginKeys.map((key) => {
         if (key.pluginId === pluginKey.pluginId) {
-          return pluginKey;
+          return pluginKey
         }
 
-        return key;
-      });
+        return key
+      })
 
-      setPluginKeys(updatedPluginKeys);
+      setPluginKeys(updatedPluginKeys)
 
-      localStorage.setItem('pluginKeys', JSON.stringify(updatedPluginKeys));
+      localStorage.setItem('pluginKeys', JSON.stringify(updatedPluginKeys))
     } else {
-      setPluginKeys([...pluginKeys, pluginKey]);
+      setPluginKeys([...pluginKeys, pluginKey])
 
-      localStorage.setItem(
-        'pluginKeys',
-        JSON.stringify([...pluginKeys, pluginKey]),
-      );
+      localStorage.setItem('pluginKeys', JSON.stringify([...pluginKeys, pluginKey]))
     }
-  };
+  }
 
   const handleClearPluginKey = (pluginKey: PluginKey) => {
-    const updatedPluginKeys = pluginKeys.filter(
-      (key) => key.pluginId !== pluginKey.pluginId,
-    );
+    const updatedPluginKeys = pluginKeys.filter((key) => key.pluginId !== pluginKey.pluginId)
 
     if (updatedPluginKeys.length === 0) {
-      setPluginKeys([]);
-      localStorage.removeItem('pluginKeys');
-      return;
+      setPluginKeys([])
+      localStorage.removeItem('pluginKeys')
+      return
     }
 
-    setPluginKeys(updatedPluginKeys);
+    setPluginKeys(updatedPluginKeys)
 
-    localStorage.setItem('pluginKeys', JSON.stringify(updatedPluginKeys));
-  };
+    localStorage.setItem('pluginKeys', JSON.stringify(updatedPluginKeys))
+  }
 
   const handleToggleChatbar = () => {
-    setShowSidebar(!showSidebar);
-    localStorage.setItem('showChatbar', JSON.stringify(!showSidebar));
-  };
+    setShowSidebar(!showSidebar)
+    localStorage.setItem('showChatbar', JSON.stringify(!showSidebar))
+  }
 
   const handleTogglePromptbar = () => {
-    setShowPromptbar(!showPromptbar);
-    localStorage.setItem('showPromptbar', JSON.stringify(!showPromptbar));
-  };
+    setShowPromptbar(!showPromptbar)
+    localStorage.setItem('showPromptbar', JSON.stringify(!showPromptbar))
+  }
 
   const handleExportData = () => {
-    exportData();
-  };
+    exportData()
+  }
 
   const handleImportConversations = (data: SupportedExportFormats) => {
-    const { history, folders, prompts }: LatestExportFormat = importData(data);
+    const { history, folders, prompts }: LatestExportFormat = importData(data)
 
-    setConversations(history);
-    setSelectedConversation(history[history.length - 1]);
-    setFolders(folders);
-    setPrompts(prompts);
-  };
+    setConversations(history)
+    setSelectedConversation(history[history.length - 1])
+    setFolders(folders)
+    setPrompts(prompts)
+  }
 
   const handleSelectConversation = (conversation: Conversation) => {
-    setSelectedConversation(conversation);
-    saveConversation(conversation);
-  };
+    setSelectedConversation(conversation)
+    saveConversation(conversation)
+  }
 
   // FOLDER OPERATIONS  --------------------------------------------
 
@@ -419,45 +390,45 @@ const Home: React.FC<HomeProps> = ({
       id: uuidv4(),
       name,
       type,
-    };
+    }
 
-    const updatedFolders = [...folders, newFolder];
+    const updatedFolders = [...folders, newFolder]
 
-    setFolders(updatedFolders);
-    saveFolders(updatedFolders);
-  };
+    setFolders(updatedFolders)
+    saveFolders(updatedFolders)
+  }
 
   const handleDeleteFolder = (folderId: string) => {
-    const updatedFolders = folders.filter((f) => f.id !== folderId);
-    setFolders(updatedFolders);
-    saveFolders(updatedFolders);
+    const updatedFolders = folders.filter((f) => f.id !== folderId)
+    setFolders(updatedFolders)
+    saveFolders(updatedFolders)
 
     const updatedConversations: Conversation[] = conversations.map((c) => {
       if (c.folderId === folderId) {
         return {
           ...c,
           folderId: null,
-        };
+        }
       }
 
-      return c;
-    });
-    setConversations(updatedConversations);
-    saveConversations(updatedConversations);
+      return c
+    })
+    setConversations(updatedConversations)
+    saveConversations(updatedConversations)
 
     const updatedPrompts: Prompt[] = prompts.map((p) => {
       if (p.folderId === folderId) {
         return {
           ...p,
           folderId: null,
-        };
+        }
       }
 
-      return p;
-    });
-    setPrompts(updatedPrompts);
-    savePrompts(updatedPrompts);
-  };
+      return p
+    })
+    setPrompts(updatedPrompts)
+    savePrompts(updatedPrompts)
+  }
 
   const handleUpdateFolder = (folderId: string, name: string) => {
     const updatedFolders = folders.map((f) => {
@@ -465,20 +436,20 @@ const Home: React.FC<HomeProps> = ({
         return {
           ...f,
           name,
-        };
+        }
       }
 
-      return f;
-    });
+      return f
+    })
 
-    setFolders(updatedFolders);
-    saveFolders(updatedFolders);
-  };
+    setFolders(updatedFolders)
+    saveFolders(updatedFolders)
+  }
 
   // CONVERSATION OPERATIONS  --------------------------------------------
 
   const handleNewConversation = () => {
-    const lastConversation = conversations[conversations.length - 1];
+    const lastConversation = conversations[conversations.length - 1]
 
     const newConversation: Conversation = {
       id: uuidv4(),
@@ -492,31 +463,27 @@ const Home: React.FC<HomeProps> = ({
       },
       prompt: DEFAULT_SYSTEM_PROMPT,
       folderId: null,
-    };
+    }
 
-    const updatedConversations = [...conversations, newConversation];
+    const updatedConversations = [...conversations, newConversation]
 
-    setSelectedConversation(newConversation);
-    setConversations(updatedConversations);
+    setSelectedConversation(newConversation)
+    setConversations(updatedConversations)
 
-    saveConversation(newConversation);
-    saveConversations(updatedConversations);
+    saveConversation(newConversation)
+    saveConversations(updatedConversations)
 
-    setLoading(false);
-  };
+    setLoading(false)
+  }
 
   const handleDeleteConversation = (conversation: Conversation) => {
-    const updatedConversations = conversations.filter(
-      (c) => c.id !== conversation.id,
-    );
-    setConversations(updatedConversations);
-    saveConversations(updatedConversations);
+    const updatedConversations = conversations.filter((c) => c.id !== conversation.id)
+    setConversations(updatedConversations)
+    saveConversations(updatedConversations)
 
     if (updatedConversations.length > 0) {
-      setSelectedConversation(
-        updatedConversations[updatedConversations.length - 1],
-      );
-      saveConversation(updatedConversations[updatedConversations.length - 1]);
+      setSelectedConversation(updatedConversations[updatedConversations.length - 1])
+      saveConversation(updatedConversations[updatedConversations.length - 1])
     } else {
       setSelectedConversation({
         id: uuidv4(),
@@ -525,32 +492,26 @@ const Home: React.FC<HomeProps> = ({
         model: OpenAIModels[defaultModelId],
         prompt: DEFAULT_SYSTEM_PROMPT,
         folderId: null,
-      });
-      localStorage.removeItem('selectedConversation');
+      })
+      localStorage.removeItem('selectedConversation')
     }
-  };
+  }
 
-  const handleUpdateConversation = (
-    conversation: Conversation,
-    data: KeyValuePair,
-  ) => {
+  const handleUpdateConversation = (conversation: Conversation, data: KeyValuePair) => {
     const updatedConversation = {
       ...conversation,
       [data.key]: data.value,
-    };
+    }
 
-    const { single, all } = updateConversation(
-      updatedConversation,
-      conversations,
-    );
+    const { single, all } = updateConversation(updatedConversation, conversations)
 
-    setSelectedConversation(single);
-    setConversations(all);
-  };
+    setSelectedConversation(single)
+    setConversations(all)
+  }
 
   const handleClearConversations = () => {
-    setConversations([]);
-    localStorage.removeItem('conversationHistory');
+    setConversations([])
+    localStorage.removeItem('conversationHistory')
 
     setSelectedConversation({
       id: uuidv4(),
@@ -559,40 +520,37 @@ const Home: React.FC<HomeProps> = ({
       model: OpenAIModels[defaultModelId],
       prompt: DEFAULT_SYSTEM_PROMPT,
       folderId: null,
-    });
-    localStorage.removeItem('selectedConversation');
+    })
+    localStorage.removeItem('selectedConversation')
 
-    const updatedFolders = folders.filter((f) => f.type !== 'chat');
-    setFolders(updatedFolders);
-    saveFolders(updatedFolders);
-  };
+    const updatedFolders = folders.filter((f) => f.type !== 'chat')
+    setFolders(updatedFolders)
+    saveFolders(updatedFolders)
+  }
 
   const handleEditMessage = (message: Message, messageIndex: number) => {
     if (selectedConversation) {
       const updatedMessages = selectedConversation.messages
         .map((m, i) => {
           if (i < messageIndex) {
-            return m;
+            return m
           }
         })
-        .filter((m) => m) as Message[];
+        .filter((m) => m) as Message[]
 
       const updatedConversation = {
         ...selectedConversation,
         messages: updatedMessages,
-      };
+      }
 
-      const { single, all } = updateConversation(
-        updatedConversation,
-        conversations,
-      );
+      const { single, all } = updateConversation(updatedConversation, conversations)
 
-      setSelectedConversation(single);
-      setConversations(all);
+      setSelectedConversation(single)
+      setConversations(all)
 
-      setCurrentMessage(message);
+      setCurrentMessage(message)
     }
-  };
+  }
 
   // PROMPT OPERATIONS --------------------------------------------
 
@@ -604,122 +562,116 @@ const Home: React.FC<HomeProps> = ({
       content: '',
       model: OpenAIModels[defaultModelId],
       folderId: null,
-    };
+    }
 
-    const updatedPrompts = [...prompts, newPrompt];
+    const updatedPrompts = [...prompts, newPrompt]
 
-    setPrompts(updatedPrompts);
-    savePrompts(updatedPrompts);
-  };
+    setPrompts(updatedPrompts)
+    savePrompts(updatedPrompts)
+  }
 
   const handleUpdatePrompt = (prompt: Prompt) => {
     const updatedPrompts = prompts.map((p) => {
       if (p.id === prompt.id) {
-        return prompt;
+        return prompt
       }
 
-      return p;
-    });
+      return p
+    })
 
-    setPrompts(updatedPrompts);
-    savePrompts(updatedPrompts);
-  };
+    setPrompts(updatedPrompts)
+    savePrompts(updatedPrompts)
+  }
 
   const handleDeletePrompt = (prompt: Prompt) => {
-    const updatedPrompts = prompts.filter((p) => p.id !== prompt.id);
-    setPrompts(updatedPrompts);
-    savePrompts(updatedPrompts);
-  };
+    const updatedPrompts = prompts.filter((p) => p.id !== prompt.id)
+    setPrompts(updatedPrompts)
+    savePrompts(updatedPrompts)
+  }
 
   // EFFECTS  --------------------------------------------
 
   useEffect(() => {
     if (currentMessage) {
-      handleSend(currentMessage);
-      setCurrentMessage(undefined);
+      handleSend(currentMessage)
+      setCurrentMessage(undefined)
     }
-  }, [currentMessage]);
+  }, [currentMessage])
 
   useEffect(() => {
     if (window.innerWidth < 640) {
-      setShowSidebar(false);
+      setShowSidebar(false)
     }
-  }, [selectedConversation]);
+  }, [selectedConversation])
 
   useEffect(() => {
     if (apiKey) {
-      fetchModels(apiKey);
+      fetchModels(apiKey)
     }
-  }, [apiKey]);
+  }, [apiKey])
 
   // ON LOAD --------------------------------------------
 
   useEffect(() => {
-    const theme = localStorage.getItem('theme');
+    const theme = localStorage.getItem('theme')
     if (theme) {
-      setLightMode(theme as 'dark' | 'light');
+      setLightMode(theme as 'dark' | 'light')
     }
 
-    const apiKey = localStorage.getItem('apiKey');
+    const apiKey = localStorage.getItem('apiKey')
     if (serverSideApiKeyIsSet) {
-      fetchModels('');
-      setApiKey('');
-      localStorage.removeItem('apiKey');
+      fetchModels('')
+      setApiKey('')
+      localStorage.removeItem('apiKey')
     } else if (apiKey) {
-      setApiKey(apiKey);
-      fetchModels(apiKey);
+      setApiKey(apiKey)
+      fetchModels(apiKey)
     }
 
-    const pluginKeys = localStorage.getItem('pluginKeys');
+    const pluginKeys = localStorage.getItem('pluginKeys')
     if (serverSidePluginKeysSet) {
-      setPluginKeys([]);
-      localStorage.removeItem('pluginKeys');
+      setPluginKeys([])
+      localStorage.removeItem('pluginKeys')
     } else if (pluginKeys) {
-      setPluginKeys(JSON.parse(pluginKeys));
+      setPluginKeys(JSON.parse(pluginKeys))
     }
 
     if (window.innerWidth < 640) {
-      setShowSidebar(false);
+      setShowSidebar(false)
     }
 
-    const showChatbar = localStorage.getItem('showChatbar');
+    const showChatbar = localStorage.getItem('showChatbar')
     if (showChatbar) {
-      setShowSidebar(showChatbar === 'true');
+      setShowSidebar(showChatbar === 'true')
     }
 
-    const showPromptbar = localStorage.getItem('showPromptbar');
+    const showPromptbar = localStorage.getItem('showPromptbar')
     if (showPromptbar) {
-      setShowPromptbar(showPromptbar === 'true');
+      setShowPromptbar(showPromptbar === 'true')
     }
 
-    const folders = localStorage.getItem('folders');
+    const folders = localStorage.getItem('folders')
     if (folders) {
-      setFolders(JSON.parse(folders));
+      setFolders(JSON.parse(folders))
     }
 
-    const prompts = localStorage.getItem('prompts');
+    const prompts = localStorage.getItem('prompts')
     if (prompts) {
-      setPrompts(JSON.parse(prompts));
+      setPrompts(JSON.parse(prompts))
     }
 
-    const conversationHistory = localStorage.getItem('conversationHistory');
+    const conversationHistory = localStorage.getItem('conversationHistory')
     if (conversationHistory) {
-      const parsedConversationHistory: Conversation[] =
-        JSON.parse(conversationHistory);
-      const cleanedConversationHistory = cleanConversationHistory(
-        parsedConversationHistory,
-      );
-      setConversations(cleanedConversationHistory);
+      const parsedConversationHistory: Conversation[] = JSON.parse(conversationHistory)
+      const cleanedConversationHistory = cleanConversationHistory(parsedConversationHistory)
+      setConversations(cleanedConversationHistory)
     }
 
-    const selectedConversation = localStorage.getItem('selectedConversation');
+    const selectedConversation = localStorage.getItem('selectedConversation')
     if (selectedConversation) {
-      const parsedSelectedConversation: Conversation =
-        JSON.parse(selectedConversation);
-      const cleanedSelectedConversation = cleanSelectedConversation(
-        parsedSelectedConversation,
-      );
-      setSelectedConversation(cleanedSelectedConversation);
+      const parsedSelectedConversation: Conversation = JSON.parse(selectedConversation)
+      const cleanedSelectedConversation = cleanSelectedConversation(parsedSelectedConversation)
+      setSelectedConversation(cleanedSelectedConversation)
     } else {
       setSelectedConversation({
         id: uuidv4(),
@@ -728,9 +680,9 @@ const Home: React.FC<HomeProps> = ({
         model: OpenAIModels[defaultModelId],
         prompt: DEFAULT_SYSTEM_PROMPT,
         folderId: null,
-      });
+      })
     }
-  }, [serverSideApiKeyIsSet]);
+  }, [serverSideApiKeyIsSet])
 
   return (
     <>
@@ -854,26 +806,24 @@ const Home: React.FC<HomeProps> = ({
         </main>
       )}
     </>
-  );
-};
-export default Home;
+  )
+}
+export default Home
 
 export const getServerSideProps: GetServerSideProps = async ({ locale }) => {
   const defaultModelId =
     (process.env.DEFAULT_MODEL &&
-      Object.values(OpenAIModelID).includes(
-        process.env.DEFAULT_MODEL as OpenAIModelID,
-      ) &&
+      Object.values(OpenAIModelID).includes(process.env.DEFAULT_MODEL as OpenAIModelID) &&
       process.env.DEFAULT_MODEL) ||
-    fallbackModelID;
+    fallbackModelID
 
-  let serverSidePluginKeysSet = false;
+  let serverSidePluginKeysSet = false
 
-  const googleApiKey = process.env.GOOGLE_API_KEY;
-  const googleCSEId = process.env.GOOGLE_CSE_ID;
+  const googleApiKey = process.env.GOOGLE_API_KEY
+  const googleCSEId = process.env.GOOGLE_CSE_ID
 
   if (googleApiKey && googleCSEId) {
-    serverSidePluginKeysSet = true;
+    serverSidePluginKeysSet = true
   }
 
   return {
@@ -889,5 +839,5 @@ export const getServerSideProps: GetServerSideProps = async ({ locale }) => {
         'promptbar',
       ])),
     },
-  };
-};
+  }
+}
