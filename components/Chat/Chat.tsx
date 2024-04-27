@@ -230,7 +230,7 @@ export const Chat: FC<Props> = memo(
                           }
                         />
 
-                        <SystemPrompt
+                        {/* <SystemPrompt
                           conversation={conversation}
                           prompts={prompts}
                           onChangePrompt={(prompt) =>
@@ -239,7 +239,7 @@ export const Chat: FC<Props> = memo(
                               value: prompt,
                             })
                           }
-                        />
+                        /> */}
                       </div>
                     )}
                   </div>
