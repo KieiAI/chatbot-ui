@@ -212,7 +212,7 @@ export const SystemPrompt: FC<Props> = ({
         value={t(value) || ''}
         rows={1}
         onChange={handleChange}
-        onKeyDown={handleKeyDown}
+        // onKeyDown={handleKeyDown}
       />
 
       {showPromptList && filteredPrompts.length > 0 && (

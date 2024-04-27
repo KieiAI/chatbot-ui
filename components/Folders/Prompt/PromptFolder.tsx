@@ -110,7 +110,7 @@ export const PromptFolder: FC<Props> = ({
               type="text"
               value={renameValue}
               onChange={(e) => setRenameValue(e.target.value)}
-              onKeyDown={handleEnterDown}
+              // onKeyDown={handleEnterDown}
               autoFocus
             />
           </div>

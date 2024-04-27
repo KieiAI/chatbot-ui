@@ -58,7 +58,7 @@ export const PluginKeys: FC<Props> = ({
       {isChanging && (
         <div
           className="z-100 fixed inset-0 flex items-center justify-center bg-black bg-opacity-50"
-          onKeyDown={handleEnter}
+          // onKeyDown={handleEnter}
         >
           <div className="fixed inset-0 z-10 overflow-y-auto">
             <div className="flex min-h-screen items-center justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
