@@ -7,7 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "format": "prettier --write .",
+    "lint:prettier": "prettier --write --ignore-path .gitignore './**/*.{js,jsx,ts,tsx,json}'",
+    "format:eslint": "yarn lint --fix",
+    "format:prettier": "yarn lint:prettier -w",
+    "format": "yarn format:prettier && yarn format:eslint",
     "test": "vitest",
     "coverage": "vitest run --coverage"
   },
