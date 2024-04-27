@@ -29,6 +29,7 @@ interface Props {
   conversationIsEmpty: boolean
   prompts: Prompt[]
   onSend: (message: Message, plugin: Plugin | null) => void
+  onAbort: () => void
   onRegenerate: () => void
   stopConversationRef: MutableRefObject<boolean>
   textareaRef: MutableRefObject<HTMLTextAreaElement | null>
@@ -40,6 +41,7 @@ export const ChatInput: FC<Props> = ({
   conversationIsEmpty,
   prompts,
   onSend,
+  onAbort,
   onRegenerate,
   stopConversationRef,
   textareaRef,
@@ -244,7 +246,7 @@ export const ChatInput: FC<Props> = ({
         {messageIsStreaming && (
           <button
             className="absolute top-0 left-0 right-0 mx-auto mb-3 flex w-fit items-center gap-3 rounded border border-neutral-200 bg-white py-2 px-4 text-black hover:opacity-50 dark:border-neutral-600 dark:bg-[#343541] dark:text-white md:mb-0 md:mt-2"
-            onClick={handleStopConversation}
+            onClick={onAbort}
           >
             <IconPlayerStop size={16} /> {t('Stop Generating')}
           </button>

@@ -62,6 +62,13 @@ const Home: React.FC<HomeProps> = ({
   const [prompts, setPrompts] = useState<Prompt[]>([])
   const [showPromptbar, setShowPromptbar] = useState<boolean>(true)
 
+  const [controller, setController] = useState<AbortController | null>(null)
+  const handleAbort = () => {
+    if (controller) {
+      controller.abort() // リクエストの中止
+    }
+  }
+
   // REFS ----------------------------------------------
 
   const stopConversationRef = useRef<boolean>(false)
@@ -69,6 +76,9 @@ const Home: React.FC<HomeProps> = ({
   // FETCH RESPONSE ----------------------------------------------
 
   const handleSend = async (message: Message, deleteCount = 0, plugin: Plugin | null = null) => {
+    const newController = new AbortController()
+    setController(newController)
+
     if (selectedConversation) {
       let updatedConversation: Conversation
 
@@ -117,149 +127,200 @@ const Home: React.FC<HomeProps> = ({
         })
       }
 
-      const controller = new AbortController()
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        signal: controller.signal,
-        body,
-      })
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          signal: newController.signal,
+          body,
+        })
 
-      if (!response.ok) {
-        setLoading(false)
-        setMessageIsStreaming(false)
-        toast.error(response.statusText)
-        return
-      }
+        if (!response.ok) {
+          setLoading(false)
+          setMessageIsStreaming(false)
+          toast.error(response.statusText)
+          throw new Error(response.statusText)
+        }
 
-      const data = response.body
+        const data = response.body
 
-      if (!data) {
-        setLoading(false)
-        setMessageIsStreaming(false)
-        return
-      }
+        if (!data) {
+          setLoading(false)
+          setMessageIsStreaming(false)
+          throw new Error('No data received')
+        }
 
-      if (!plugin) {
-        if (updatedConversation.messages.length === 1) {
-          const { content } = message
-          const customName = content.length > 30 ? content.substring(0, 30) + '...' : content
+        if (!plugin) {
+          if (updatedConversation.messages.length === 1) {
+            const { content } = message
+            const customName = content.length > 30 ? content.substring(0, 30) + '...' : content
+
+            updatedConversation = {
+              ...updatedConversation,
+              name: customName,
+            }
+          }
+
+          setLoading(false)
+
+          const reader = data.getReader()
+          const decoder = new TextDecoder()
+          let done = false
+          let isFirst = true
+          let text = ''
+
+          while (!done) {
+            const { value, done: doneReading } = await reader.read()
+            done = doneReading
+            const chunkValue = decoder.decode(value)
+
+            text += chunkValue
+
+            if (isFirst) {
+              isFirst = false
+              const updatedMessages: Message[] = [
+                ...updatedConversation.messages,
+                { role: 'assistant', content: chunkValue },
+              ]
+
+              updatedConversation = {
+                ...updatedConversation,
+                messages: updatedMessages,
+              }
+
+              setSelectedConversation(updatedConversation)
+            } else {
+              const updatedMessages: Message[] = updatedConversation.messages.map(
+                (message, index) => {
+                  if (index === updatedConversation.messages.length - 1) {
+                    return {
+                      ...message,
+                      content: text,
+                    }
+                  }
+
+                  return message
+                }
+              )
+
+              updatedConversation = {
+                ...updatedConversation,
+                messages: updatedMessages,
+              }
+
+              setSelectedConversation(updatedConversation)
+            }
+          }
+
+          saveConversation(updatedConversation)
+
+          const updatedConversations: Conversation[] = conversations.map((conversation) => {
+            if (conversation.id === selectedConversation.id) {
+              return updatedConversation
+            }
+
+            return conversation
+          })
+
+          if (updatedConversations.length === 0) {
+            updatedConversations.push(updatedConversation)
+          }
+
+          setConversations(updatedConversations)
+          saveConversations(updatedConversations)
+
+          setMessageIsStreaming(false)
+        } else {
+          const { answer } = await response.json()
+
+          const updatedMessages: Message[] = [
+            ...updatedConversation.messages,
+            { role: 'assistant', content: answer },
+          ]
 
           updatedConversation = {
             ...updatedConversation,
-            name: customName,
+            messages: updatedMessages,
           }
-        }
 
-        setLoading(false)
+          setSelectedConversation(updatedConversation)
+          saveConversation(updatedConversation)
 
-        const reader = data.getReader()
-        const decoder = new TextDecoder()
-        let done = false
-        let isFirst = true
-        let text = ''
-
-        while (!done) {
-          if (stopConversationRef.current === true) {
-            controller.abort()
-            done = true
-            break
-          }
-          const { value, done: doneReading } = await reader.read()
-          done = doneReading
-          const chunkValue = decoder.decode(value)
-
-          text += chunkValue
-
-          if (isFirst) {
-            isFirst = false
-            const updatedMessages: Message[] = [
-              ...updatedConversation.messages,
-              { role: 'assistant', content: chunkValue },
-            ]
-
-            updatedConversation = {
-              ...updatedConversation,
-              messages: updatedMessages,
+          const updatedConversations: Conversation[] = conversations.map((conversation) => {
+            if (conversation.id === selectedConversation.id) {
+              return updatedConversation
             }
 
-            setSelectedConversation(updatedConversation)
-          } else {
-            const updatedMessages: Message[] = updatedConversation.messages.map(
-              (message, index) => {
-                if (index === updatedConversation.messages.length - 1) {
-                  return {
-                    ...message,
-                    content: text,
-                  }
-                }
+            return conversation
+          })
 
-                return message
+          if (updatedConversations.length === 0) {
+            updatedConversations.push(updatedConversation)
+          }
+
+          setConversations(updatedConversations)
+          saveConversations(updatedConversations)
+
+          setLoading(false)
+          setMessageIsStreaming(false)
+        }
+      } catch (error: any) {
+        let AbortErrorFlag = false
+        setLoading(false)
+        setMessageIsStreaming(false)
+        let errorText = ''
+        // エラーメッセージ設計
+        if (error.name === 'AbortError') {
+          console.log('error:回答生成がストップされました。')
+          AbortErrorFlag = true
+        } else {
+          console.error(error)
+          errorText =
+            '`申し訳ございません。通信の際に問題が発生しております。ページを再度読み込みして、もう一度お試しください。`'
+        }
+        if (updatedConversation.messages[updatedConversation.messages.length - 1].role === 'user') {
+          const updatedMessages: Message[] = [
+            ...updatedConversation.messages,
+            { role: 'assistant', content: `${errorText}` },
+          ]
+          updatedConversation = {
+            ...updatedConversation,
+            messages: updatedMessages,
+          }
+        } else {
+          const updatedMessages: Message[] = updatedConversation.messages.map((message, index) => {
+            if (index === updatedConversation.messages.length - 1) {
+              return {
+                ...message,
+                content: `${message.content + '\n\n' + errorText}`,
               }
-            )
-
-            updatedConversation = {
-              ...updatedConversation,
-              messages: updatedMessages,
             }
-
-            setSelectedConversation(updatedConversation)
+            return message
+          })
+          updatedConversation = {
+            ...updatedConversation,
+            messages: updatedMessages,
           }
         }
-
-        saveConversation(updatedConversation)
-
-        const updatedConversations: Conversation[] = conversations.map((conversation) => {
-          if (conversation.id === selectedConversation.id) {
-            return updatedConversation
-          }
-
-          return conversation
-        })
-
-        if (updatedConversations.length === 0) {
-          updatedConversations.push(updatedConversation)
-        }
-
-        setConversations(updatedConversations)
-        saveConversations(updatedConversations)
-
-        setMessageIsStreaming(false)
-      } else {
-        const { answer } = await response.json()
-
-        const updatedMessages: Message[] = [
-          ...updatedConversation.messages,
-          { role: 'assistant', content: answer },
-        ]
-
-        updatedConversation = {
-          ...updatedConversation,
-          messages: updatedMessages,
-        }
-
         setSelectedConversation(updatedConversation)
-        saveConversation(updatedConversation)
-
-        const updatedConversations: Conversation[] = conversations.map((conversation) => {
-          if (conversation.id === selectedConversation.id) {
-            return updatedConversation
+        // 回答ストップの際だけ履歴に追加
+        if (AbortErrorFlag) {
+          let newThreadFlag = true
+          const updatedConversations: Conversation[] = conversations.map((conversation) => {
+            if (conversation.id === selectedConversation.id) {
+              newThreadFlag = false
+              return updatedConversation
+            }
+            return conversation
+          })
+          if (newThreadFlag) {
+            updatedConversations.push(updatedConversation)
           }
-
-          return conversation
-        })
-
-        if (updatedConversations.length === 0) {
-          updatedConversations.push(updatedConversation)
+          setConversations(updatedConversations)
+          saveConversations(updatedConversations)
         }
-
-        setConversations(updatedConversations)
-        saveConversations(updatedConversations)
-
-        setLoading(false)
-        setMessageIsStreaming(false)
       }
     }
   }
@@ -765,6 +826,7 @@ const Home: React.FC<HomeProps> = ({
                 loading={loading}
                 prompts={prompts}
                 onSend={handleSend}
+                onAbort={handleAbort}
                 onUpdateConversation={handleUpdateConversation}
                 onEditMessage={handleEditMessage}
                 stopConversationRef={stopConversationRef}

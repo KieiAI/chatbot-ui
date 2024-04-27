@@ -27,6 +27,7 @@ interface Props {
   loading: boolean
   prompts: Prompt[]
   onSend: (message: Message, deleteCount: number, plugin: Plugin | null) => void
+  onAbort: () => void
   onUpdateConversation: (conversation: Conversation, data: KeyValuePair) => void
   onEditMessage: (message: Message, messageIndex: number) => void
   stopConversationRef: MutableRefObject<boolean>
@@ -44,6 +45,7 @@ export const Chat: FC<Props> = memo(
     loading,
     prompts,
     onSend,
+    onAbort,
     onUpdateConversation,
     onEditMessage,
     stopConversationRef,
@@ -278,6 +280,7 @@ export const Chat: FC<Props> = memo(
                 setCurrentMessage(message)
                 onSend(message, 0, plugin)
               }}
+              onAbort={onAbort}
               onRegenerate={() => {
                 if (currentMessage) {
                   onSend(currentMessage, 2, null)
