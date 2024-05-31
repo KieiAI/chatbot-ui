@@ -33,12 +33,9 @@ interface HomeProps {
   defaultModelId: OpenAIModelID
 }
 
-const Home: React.FC<HomeProps> = ({
-  serverSideApiKeyIsSet,
-  serverSidePluginKeysSet,
-  defaultModelId,
-}) => {
+const Home: React.FC<HomeProps> = ({ serverSideApiKeyIsSet, serverSidePluginKeysSet }) => {
   const { t } = useTranslation('chat')
+  const defaultModelId = OpenAIModelID.GPT_4
 
   // STATE ----------------------------------------------
 
