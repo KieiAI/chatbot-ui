@@ -31,6 +31,8 @@ interface Props {
   onUpdateConversation: (conversation: Conversation, data: KeyValuePair) => void
   onEditMessage: (message: Message, messageIndex: number) => void
   stopConversationRef: MutableRefObject<boolean>
+  pdfFile: File | null
+  handleFileChange: (event: any) => void
 }
 
 export const Chat: FC<Props> = memo(
@@ -49,6 +51,8 @@ export const Chat: FC<Props> = memo(
     onUpdateConversation,
     onEditMessage,
     stopConversationRef,
+    pdfFile,
+    handleFileChange,
   }) => {
     const { t } = useTranslation('chat')
     const [currentMessage, setCurrentMessage] = useState<Message>()
@@ -286,6 +290,8 @@ export const Chat: FC<Props> = memo(
                   onSend(currentMessage, 2, null)
                 }
               }}
+              pdfFile={pdfFile}
+              handleFileChange={handleFileChange}
             />
           </>
         )}

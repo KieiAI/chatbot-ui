@@ -16,8 +16,13 @@
   },
   "dependencies": {
     "@dqbd/tiktoken": "^1.0.2",
+    "@emotion/react": "^11.11.4",
+    "@emotion/styled": "^11.11.5",
+    "@mui/icons-material": "^5.15.19",
+    "@mui/material": "^5.15.19",
     "@tabler/icons-react": "^2.9.0",
     "eventsource-parser": "^0.1.0",
+    "firebase": "^10.12.2",
     "i18next": "^22.4.13",
     "next": "13.2.4",
     "next-i18next": "^13.2.2",

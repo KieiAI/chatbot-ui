@@ -2,6 +2,7 @@ import { Chat } from '@/components/Chat/Chat'
 import { Chatbar } from '@/components/Chatbar/Chatbar'
 import { Navbar } from '@/components/Mobile/Navbar'
 import { Promptbar } from '@/components/Promptbar/Promptbar'
+import StorageRepository from '@/libs/firebase'
 import { ChatBody, Conversation, Message } from '@/types/chat'
 import { KeyValuePair } from '@/types/data'
 import { ErrorMessage } from '@/types/error'
@@ -62,6 +63,11 @@ const Home: React.FC<HomeProps> = ({
   const [prompts, setPrompts] = useState<Prompt[]>([])
   const [showPromptbar, setShowPromptbar] = useState<boolean>(true)
 
+  const [pdfFile, setPdfFile] = useState<File | null>(null)
+  const handleFileChange = (event: any) => {
+    setPdfFile(event.target.files[0])
+  }
+
   const [controller, setController] = useState<AbortController | null>(null)
   const handleAbort = () => {
     if (controller) {
@@ -103,11 +109,28 @@ const Home: React.FC<HomeProps> = ({
       setLoading(true)
       setMessageIsStreaming(true)
 
+      setPdfFile(null)
+      let ocrText = ''
+      if (pdfFile) {
+        try {
+          ocrText = await getOcrTextFromPdfFile(pdfFile, `pdf/${pdfFile.name}`)
+          console.log('ocrText:\n\n', ocrText)
+          ocrText =
+            '\n\n以下は外部から読み込んだファイルの文字起こしです。以下の内容を参考にして回答してください。\n\n' +
+            ocrText
+        } catch (e: any) {
+          setLoading(false)
+          setMessageIsStreaming(false)
+          toast.error(e.message)
+          alert('PDFファイルの読み込みに失敗しました。')
+          return
+        }
+      }
       const chatBody: ChatBody = {
         model: updatedConversation.model,
         messages: updatedConversation.messages,
         key: apiKey,
-        prompt: updatedConversation.prompt,
+        prompt: updatedConversation.prompt + ocrText,
       }
 
       const endpoint = getEndpoint(plugin)
@@ -323,6 +346,28 @@ const Home: React.FC<HomeProps> = ({
         }
       }
     }
+  }
+
+  const storageHandler = new StorageRepository()
+  const getOcrTextFromPdfFile = async (file: File, path: string): Promise<string> => {
+    try {
+      const url = await storageHandler.uploadFileAndGetUrl(file, path)
+      const text = await doPdfOcr(url)
+      await storageHandler.deleteFile(path)
+      return text
+    } catch (e: any) {
+      throw new Error(e.message)
+    }
+  }
+
+  const SPREADSHEET_URL =
+    'https://script.google.com/macros/s/AKfycbw0A4c_XWW7HTgAZ_i-qh-BLad_wp4tQWFlWf2YJDM-bC-Om-tyYYyLID6aZlinaB3D/exec'
+  const doPdfOcr = async (url: string): Promise<string> => {
+    const res = await fetch(SPREADSHEET_URL, {
+      method: 'POST',
+      body: JSON.stringify({ url }),
+    })
+    return await res.text()
   }
 
   // FETCH MODELS ----------------------------------------------
@@ -830,6 +875,8 @@ const Home: React.FC<HomeProps> = ({
                 onUpdateConversation={handleUpdateConversation}
                 onEditMessage={handleEditMessage}
                 stopConversationRef={stopConversationRef}
+                pdfFile={pdfFile}
+                handleFileChange={handleFileChange}
               />
             </div>
 
