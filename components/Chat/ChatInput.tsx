@@ -64,6 +64,7 @@ export const ChatInput: FC<Props> = ({
   const [plugin, setPlugin] = useState<Plugin | null>(null)
 
   const promptListRef = useRef<HTMLUListElement | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const filteredPrompts = prompts.filter((prompt) =>
     prompt.name.toLowerCase().includes(promptInputValue.toLowerCase())
@@ -245,6 +246,12 @@ export const ChatInput: FC<Props> = ({
     }
   }, [])
 
+  useEffect(() => {
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }, [pdfFile])
+
   return (
     <div className="absolute bottom-0 left-0 w-full border-transparent bg-gradient-to-b from-transparent via-white to-white pt-6 dark:border-white/20 dark:via-[#343541] dark:to-[#343541] md:pt-2">
       <div className="stretch mx-2 mt-4 flex flex-row gap-3 last:mb-2 md:mx-4 md:mt-[52px] md:last:mb-6 lg:mx-auto lg:max-w-3xl">
@@ -276,7 +283,13 @@ export const ChatInput: FC<Props> = ({
           </button>
           <label className="absolute left-8 top-2 rounded-sm p-1 text-neutral-800 opacity-60 hover:bg-neutral-200 hover:text-neutral-900 dark:bg-opacity-50 dark:text-neutral-100 dark:hover:text-neutral-200">
             <AttachFileIcon sx={{ fontSize: '20px' }} />
-            <input type="file" accept="application/pdf" hidden onChange={handleFileChange} />
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="application/pdf"
+              hidden
+              onChange={handleFileChange}
+            />
           </label>
 
           {showPluginSelect && (

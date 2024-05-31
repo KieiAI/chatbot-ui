@@ -61,8 +61,10 @@ const Home: React.FC<HomeProps> = ({ serverSideApiKeyIsSet, serverSidePluginKeys
   const [showPromptbar, setShowPromptbar] = useState<boolean>(true)
 
   const [pdfFile, setPdfFile] = useState<File | null>(null)
-  const handleFileChange = (event: any) => {
-    setPdfFile(event.target.files[0])
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files[0]) {
+      setPdfFile(event.target.files[0])
+    }
   }
 
   const [controller, setController] = useState<AbortController | null>(null)

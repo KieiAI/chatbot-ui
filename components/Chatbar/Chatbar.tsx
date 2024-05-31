@@ -10,6 +10,7 @@ import { ChatFolders } from '../Folders/Chat/ChatFolders'
 import { Search } from '../Sidebar/Search'
 import { ChatbarSettings } from './ChatbarSettings'
 import { Conversations } from './Conversations'
+import { Divider } from '@mui/material'
 
 interface Props {
   loading: boolean
@@ -113,6 +114,8 @@ export const Chatbar: FC<Props> = ({
     <div
       className={`fixed top-0 bottom-0 z-50 flex h-full w-[260px] flex-none flex-col space-y-2 bg-[#202123] p-2 transition-all sm:relative sm:top-0`}
     >
+      <div className="flex h-[48px] items-center"></div>
+      <Divider style={{ borderColor: '#444444' }} />
       <div className="flex items-center">
         <button
           className="flex w-[190px] flex-shrink-0 cursor-pointer select-none items-center gap-3 rounded-md border border-white/20 p-3 text-[14px] leading-normal text-white transition-colors duration-200 hover:bg-gray-500/10"

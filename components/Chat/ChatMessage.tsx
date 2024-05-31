@@ -189,27 +189,6 @@ export const ChatMessage: FC<Props> = memo(({ message, messageIndex, onEditMessa
                       }
                     }
 
-                    // if (children.length) {
-                    //   if (children[0] == '▍') {
-                    //     return (
-                    //       <>
-                    //         {!loading && (
-                    //           <>
-                    //             <span className="mt-1 animate-pulse cursor-default">▍</span>
-                    //             <span className="flex items-center justify-center">
-                    //               <div className="mt-1 animate-spin opacity-60">
-                    //                 <IconLoader2 size={20} />
-                    //               </div>
-                    //             </span>
-                    //           </>
-                    //         )}
-                    //       </>
-                    //     )
-                    //   }
-
-                    //   children[0] = (children[0] as string).replace('`▍`', '▍')
-                    // }
-
                     const match = /language-(\w+)/.exec(className || '')
 
                     return !inline ? (
