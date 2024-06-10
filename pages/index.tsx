@@ -197,6 +197,7 @@ const Home: React.FC<HomeProps> = ({ serverSideApiKeyIsSet, serverSidePluginKeys
             const { value, done: doneReading } = await reader.read()
             done = doneReading
             const chunkValue = decoder.decode(value)
+            console.log('chunkValue:', chunkValue)
 
             text += chunkValue
 
