@@ -11,6 +11,7 @@ import { Search } from '../Sidebar/Search'
 import { ChatbarSettings } from './ChatbarSettings'
 import { Conversations } from './Conversations'
 import { Divider } from '@mui/material'
+import Logo from '../Common/Logo'
 
 interface Props {
   loading: boolean
@@ -114,7 +115,9 @@ export const Chatbar: FC<Props> = ({
     <div
       className={`fixed top-0 bottom-0 z-50 flex h-full w-[260px] flex-none flex-col space-y-2 bg-[#202123] p-2 transition-all sm:relative sm:top-0`}
     >
-      <div className="flex h-[48px] items-center"></div>
+      <div className="flex h-[48px] items-center">
+        <img src="/logo_dark.png" alt="logo" className="w-full pt-2" />
+      </div>
       <Divider style={{ borderColor: '#444444' }} />
       <div className="flex items-center">
         <button
