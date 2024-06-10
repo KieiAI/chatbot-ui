@@ -11,7 +11,6 @@ import { Search } from '../Sidebar/Search'
 import { ChatbarSettings } from './ChatbarSettings'
 import { Conversations } from './Conversations'
 import { Divider } from '@mui/material'
-import Logo from '../Common/Logo'
 
 interface Props {
   loading: boolean
