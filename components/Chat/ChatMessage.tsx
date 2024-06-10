@@ -67,6 +67,10 @@ export const ChatMessage: FC<Props> = memo(({ message, messageIndex, onEditMessa
     }
   }, [isEditing])
 
+  useEffect(() => {
+    console.log('message.content', message.content)
+  }, [message.content])
+
   return (
     <div
       className={`group px-4 ${
