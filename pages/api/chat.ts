@@ -35,7 +35,10 @@ const handler = async (req: Request): Promise<Response> => {
 
     const stream = await OpenAIStream(model, promptToSend, key, messagesToSend)
 
-    return new Response(stream, { status: 200, headers: { statusText: 'success' } })
+    return new Response(stream, {
+      status: 200,
+      headers: { statusText: 'success', 'Content-Type': 'text/plain; charset=utf-8' },
+    })
   } catch (error) {
     console.error(error)
     if (error instanceof OpenAIError) {

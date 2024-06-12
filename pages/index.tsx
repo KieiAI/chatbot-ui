@@ -188,7 +188,7 @@ const Home: React.FC<HomeProps> = ({ serverSideApiKeyIsSet, serverSidePluginKeys
           setLoading(false)
 
           const reader = data.getReader()
-          const decoder = new TextDecoder()
+          const decoder = new TextDecoder('utf-8')
           let done = false
           let isFirst = true
           let text = ''
