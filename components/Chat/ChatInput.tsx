@@ -273,6 +273,13 @@ export const ChatInput: FC<Props> = ({
           </button>
         )}
 
+        {/* ファイル名を表示する */}
+        {pdfFile && (
+          <div className="absolute top-10 left-0 right-0 mx-auto mb-3 flex w-fit -translate-x-64 items-center bg-white dark:bg-[#343541]">
+            <p className="text-xs text-gray-500 dark:text-gray-300">{pdfFile.name}</p>
+          </div>
+        )}
+
         <div className="relative mx-2 flex w-full flex-grow flex-col rounded-md border border-black/10 bg-white shadow-[0_0_10px_rgba(0,0,0,0.10)] dark:border-gray-900/50 dark:bg-[#40414F] dark:text-white dark:shadow-[0_0_15px_rgba(0,0,0,0.10)] sm:mx-4">
           <button
             className="absolute left-2 top-2 rounded-sm p-1 text-neutral-800 opacity-60 hover:bg-neutral-200 hover:text-neutral-900 dark:bg-opacity-50 dark:text-neutral-100 dark:hover:text-neutral-200"
@@ -305,13 +312,6 @@ export const ChatInput: FC<Props> = ({
                   }
                 }}
               />
-            </div>
-          )}
-
-          {/* ファイル名を表示する */}
-          {pdfFile && (
-            <div className="absolute top-10 left-0 right-0 mx-auto mb-3 flex w-fit -translate-x-72 items-center bg-white dark:bg-[#343541]">
-              <p className="text-xs text-gray-500 dark:text-gray-300">{pdfFile.name}</p>
             </div>
           )}
 
