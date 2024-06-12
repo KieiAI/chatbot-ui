@@ -310,7 +310,7 @@ export const ChatInput: FC<Props> = ({
 
           {/* ファイル名を表示する */}
           {pdfFile && (
-            <div className="absolute left-0 bottom-14 bg-white dark:bg-[#343541]">
+            <div className="absolute top-10 left-0 right-0 mx-auto mb-3 flex w-fit -translate-x-72 items-center bg-white dark:bg-[#343541]">
               <p className="text-xs text-gray-500 dark:text-gray-300">{pdfFile.name}</p>
             </div>
           )}
