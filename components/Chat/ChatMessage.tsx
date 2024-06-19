@@ -7,6 +7,7 @@ import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
 import { CodeBlock } from '../Markdown/CodeBlock'
 import { MemoizedReactMarkdown } from '../Markdown/MemoizedReactMarkdown'
+import rehypeRaw from 'rehype-raw'
 
 interface Props {
   message: Message
@@ -165,7 +166,7 @@ export const ChatMessage: FC<Props> = memo(({ message, messageIndex, onEditMessa
               <MemoizedReactMarkdown
                 className="prose dark:prose-invert"
                 remarkPlugins={[remarkGfm, remarkMath]}
-                rehypePlugins={[rehypeMathjax]}
+                rehypePlugins={[rehypeMathjax, rehypeRaw as any]}
                 components={{
                   a: ({ node, ...props }) => (
                     <a
